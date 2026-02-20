@@ -1,0 +1,7 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Personal.Dashboard.Models\Personal.Dashboard.Models.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Personal.Dashboard.Api.Host\Personal.Dashboard.Api.Host.csproj" />
+  </ItemGroup>
+
+</Project>
