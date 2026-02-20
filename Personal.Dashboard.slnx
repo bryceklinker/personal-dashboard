@@ -1,7 +1,12 @@
 <Solution>
   <Folder Name="/.build/">
     <File Path="Directory.Build.props" />
+    <File Path="dotnet-tools.json" />
     <File Path="global.json" />
+  </Folder>
+  <Folder Name="/.github/" />
+  <Folder Name="/.github/workflows/">
+    <File Path=".github\workflows\main.yaml" />
   </Folder>
   <Folder Name="/.scm/">
     <File Path=".gitignore" />
