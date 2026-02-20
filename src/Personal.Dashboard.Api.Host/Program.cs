@@ -1,6 +1,10 @@
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args)
+    .AddServiceDefaults();
+builder.Services.AddControllers();
+
 var app = builder.Build();
-
-app.MapGet("/", () => "Hello World!");
-
+app.MapDefaultEndpoints();
+app.MapControllers();
 app.Run();
+
+public partial class Program;
