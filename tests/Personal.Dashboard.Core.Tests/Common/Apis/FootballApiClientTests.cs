@@ -1,8 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Http;
 using Personal.Dashboard.Core.Tests.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
+using Personal.Dashboard.Test.Support.Common.Logging;
 
 namespace Personal.Dashboard.Core.Tests.Common.Apis;
 
@@ -11,6 +13,7 @@ public class FootballApiClientTests
     private const string ApiKey = "the-api-key";
     private const string BaseUrl = "https://api.football.com";
 
+    private readonly FakeLogger _logger;
     private readonly FakeHttpMessageHandler _handler;
     private readonly IFootballApiClient _client;
 
@@ -25,6 +28,7 @@ public class FootballApiClientTests
             };
         });
 
+        _logger = provider.GetRequiredService<FakeLogger>();
         _handler = provider.GetRequiredService<FakeHttpMessageHandler>();
         _client = provider.GetRequiredService<IFootballApiClient>();
     }
@@ -87,6 +91,20 @@ public class FootballApiClientTests
             _client.GetLeaguesAsync());
     }
 
+    [Fact]
+    public async Task WhenGettingLeaguesReturnsAnErrorThenLogsError()
+    {
+        var response = FootballApiDataFactory.FailureResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
+            FootballApiLeaguesParameters.Empty(),
+            [],
+            [FootballApiDataFactory.Error()]
+        );
+        await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
+
+        await Assert.ThrowsAnyAsync<Exception>(() => _client.GetLeaguesAsync());
+        Assert.Single(_logger.GetLogItems(LogLevel.Error));
+    }
+    
     [Fact]
     public async Task WhenGettingLeaguesWithParametersThenParametersAreInQueryString()
     {

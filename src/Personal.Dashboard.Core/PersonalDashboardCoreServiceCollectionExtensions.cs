@@ -1,6 +1,11 @@
+using System.Reflection;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
+using Personal.Dashboard.Core.Common.Cqrs;
+using Personal.Dashboard.Core.Common.Cqrs.Commands;
+using Personal.Dashboard.Core.Common.Storage;
 
 namespace Personal.Dashboard.Core;
 
@@ -21,11 +26,10 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
         );
         configure(options);
 
+        services.AddPersonalDashboardDbContext(options.ConfigureDbContext);
         services.AddFootballApiClient(options.ConfigureFootballApi);
-        services.AddMediatR(cfg =>
-        {
-            cfg.RegisterServicesFromAssemblies(options.Assemblies.ToArray());
-        });
+        services.AddPersonalDashboardCqrs(options.Assemblies.ToArray());
+        
         services.AddValidatorsFromAssemblies(options.Assemblies);
         services.AddAutoMapper(cfg =>
         {
@@ -34,6 +38,17 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddPersonalDashboardCqrs(this IServiceCollection services, Assembly[] assemblies)
+    {
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssemblies(assemblies);
+        });
+        services.AddTransient<ICommandBus, CommandBus>();
+        services.AddTransient<ICqrsBus, CqrsBus>();
+        return services;
+    }
+    
     public static IServiceCollection AddFootballApiClient(this IServiceCollection services,
         Action<FootballApiClientSettings>? configure)
     {
@@ -45,6 +60,19 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
 
         services.AddHttpClient(FootballApiClientSettings.ClientName);
         services.AddTransient<IFootballApiClient, FootballApiClient>();
+        return services;
+    }
+
+    public static IServiceCollection AddPersonalDashboardDbContext(this IServiceCollection services,
+        Action<DbContextOptionsBuilder>? configure)
+    {
+        services.AddDbContext<PersonalDashboardContext>(db =>
+        {
+            if (configure is not null)
+            {
+                configure(db);
+            }
+        });
         return services;
     }
 }

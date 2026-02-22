@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.EntityFrameworkCore;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core;
@@ -9,6 +10,8 @@ public record PersonalDashboardCoreOptions
     public ImmutableArray<Assembly> Assemblies { get; private set; }
 
     public Action<FootballApiClientSettings>? ConfigureFootballApi { get; set; }
+    
+    public Action<DbContextOptionsBuilder>? ConfigureDbContext { get; set; }
 
     public PersonalDashboardCoreOptions(
         params Assembly[] assemblies

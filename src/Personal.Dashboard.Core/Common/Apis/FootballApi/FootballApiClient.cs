@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
@@ -10,7 +11,10 @@ public interface IFootballApiClient
     );
 }
 
-public class FootballApiClient(IHttpClientFactory factory, IOptions<FootballApiClientSettings> options)
+public class FootballApiClient(
+    IHttpClientFactory factory,
+    ILogger<FootballApiClient> logger,
+    IOptions<FootballApiClientSettings> options)
     : IFootballApiClient
 {
     private HttpClient Client
@@ -41,6 +45,6 @@ public class FootballApiClient(IHttpClientFactory factory, IOptions<FootballApiC
         
         var response = await Client.GetAsync(pathAndQuery);
         var apiResponse = await response.Content.ReadFromJsonAsync<FootballApiResponse<TParameters, TResponse>>();
-        return FootballApiException<TParameters, TResponse>.ThrowIfFailed(apiResponse);
+        return FootballApiException<TParameters, TResponse>.ThrowWithLogIfFailed(apiResponse, logger);
     }
 }
