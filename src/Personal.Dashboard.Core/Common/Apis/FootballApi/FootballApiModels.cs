@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 public record FootballApiPaging(long Current, long Total);
@@ -6,12 +8,42 @@ public record FootballApiCountry(string Name, string Code, string Flag);
 
 public record FootballApiLeagueInfo(long Id, string Name, string Type, string Logo);
 
+public abstract record FootballApiParameters(IDictionary<string, object?> Parameters)
+{
+    public object? this[string key]
+    {
+        get => Parameters.TryGetValue(key, out var value) ? value : null;
+        set => Parameters[key] = value;
+    }
+    
+    public string AsQueryString()
+    {
+        var defined = Parameters
+            .Where(p => p.Value is not null)
+            .ToArray();
+        if (defined.Length == 0)
+            return "";
+        
+        var parts = defined
+            .Select(p => $"{p.Key}={p.Value}".ToLowerInvariant());
+        
+        return string.Join("&", parts);
+    }
+}
+
 public record FootballApiFixtureCoverage(
     bool Events,
     bool Lineups,
     bool Statistics_Fixtures,
     bool Statistics_Players
-);
+)
+{
+    [JsonPropertyName("statistics_fixtures")]
+    public bool Statistics_Fixtures { get; init; }
+    
+    [JsonPropertyName("statistics_players")]
+    public bool Statistics_Players { get; init; }
+};
 
 public record FootballApiSeasonCoverage(
     bool Standings,
@@ -23,7 +55,17 @@ public record FootballApiSeasonCoverage(
     bool Predictions,
     bool Odds,
     FootballApiFixtureCoverage Fixtures
-);
+)
+{
+    [JsonPropertyName("top_scorers")]
+    public bool Top_Scorers { get; init; }
+    
+    [JsonPropertyName("top_assists")]
+    public bool Top_Assists { get; init; }
+    
+    [JsonPropertyName("top_cards")]
+    public bool Top_Cards { get; init; }
+};
 
 public record FootballApiSeason(
     long Year,
@@ -49,7 +91,19 @@ public record FootballApiLeaguesParameters(
     bool? Current = null,
     string? Search = null,
     string? Last = null
-)
+) : FootballApiParameters(new Dictionary<string, object?>
+{
+    { "id", Id },
+    { "name", Name },
+    { "country", Country },
+    { "code", Code },
+    { "season", Season },
+    { "team", Team },
+    { "type", Type },
+    { "current", Current },
+    { "search", Search },
+    { "last", Last }
+})
 {
     public static FootballApiLeaguesParameters Empty() => new();
 };

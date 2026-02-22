@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Test.Support.Common.Http;
+using Personal.Dashboard.Test.Support.Common.Logging;
 
 namespace Personal.Dashboard.Test.Support;
 
@@ -9,8 +11,11 @@ public static class PersonalDashboardTestingServicesCollectionExtensions
     public static IServiceCollection AddPersonalDashboardTestingServices(this IServiceCollection services)
     {
         var handler = new FakeHttpMessageHandler();
+        var logger = new FakeLogger();
         services.AddSingleton(handler);
+        services.AddSingleton(logger);
         services.ReplaceService<IHttpClientFactory, FakeHttpClientFactory>(new FakeHttpClientFactory(handler));
+        services.ReplaceService<ILoggerFactory, FakeLoggerFactory>(new FakeLoggerFactory(logger));
         return services;
     }
 

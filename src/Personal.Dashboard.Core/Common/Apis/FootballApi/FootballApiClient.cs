@@ -29,11 +29,18 @@ public class FootballApiClient(IHttpClientFactory factory, IOptions<FootballApiC
     public async Task<FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>> GetLeaguesAsync(
         FootballApiLeaguesParameters? parameters = null)
     {
-        var response = await Client.GetAsync("/leagues");
-        var json = await response.Content.ReadAsStringAsync();
+        return await GetAsync<FootballApiLeaguesParameters, FootballApiLeague[]>("/leagues", parameters);
+    }
+
+    private async Task<FootballApiResponse<TParameters, TResponse>> GetAsync<TParameters, TResponse>(string path, TParameters? parameters) 
+        where TParameters : FootballApiParameters
+    {
+        var pathAndQuery = parameters is null
+            ? path
+            : $"{path}?{parameters.AsQueryString()}";
         
-        var result = await response.Content
-            .ReadFromJsonAsync<FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>>();
-        return result!;
+        var response = await Client.GetAsync(pathAndQuery);
+        var apiResponse = await response.Content.ReadFromJsonAsync<FootballApiResponse<TParameters, TResponse>>();
+        return FootballApiException<TParameters, TResponse>.ThrowIfFailed(apiResponse);
     }
 }

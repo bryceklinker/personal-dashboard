@@ -24,7 +24,7 @@ public record ConfiguredHttpRequest
         if (_request.Method != request.Method)
             return null;
         
-        if (_request.RequestUri != request.RequestUri)
+        if (_request.RequestUri?.LocalPath != request.RequestUri?.LocalPath)
             return null;
 
         Capture(await request.CloneAsync());

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
+using Personal.Dashboard.Core.Common.Http;
 using Personal.Dashboard.Core.Tests.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
 
@@ -54,12 +55,75 @@ public class FootballApiClientTests
     {
         var response = FootballApiDataFactory.SuccessResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
             FootballApiLeaguesParameters.Empty(),
-            [FootballApiDataFactory.League()]
+            [
+                FootballApiDataFactory.League() with
+                {
+                    League = FootballApiDataFactory.LeagueInfo() with
+                    {
+                        Name = "Premier League"
+                    }
+                }
+            ]
         );
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 
         var actual = await _client.GetLeaguesAsync();
 
         Assert.Empty(actual.Errors);
+        Assert.Equal("Premier League", actual.Response[0].League.Name);
+    }
+
+    [Fact]
+    public async Task WhenGettingLeaguesReturnsAnErrorThenThrowsError()
+    {
+        var response = FootballApiDataFactory.FailureResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
+            FootballApiLeaguesParameters.Empty(),
+            [],
+            [FootballApiDataFactory.Error()]
+        );
+        await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
+
+        await Assert.ThrowsAsync<FootballApiException<FootballApiLeaguesParameters, FootballApiLeague[]>>(() =>
+            _client.GetLeaguesAsync());
+    }
+
+    [Fact]
+    public async Task WhenGettingLeaguesWithParametersThenParametersAreInQueryString()
+    {
+        HttpRequestMessage? request = null;
+        await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues",
+            FootballApiDataFactory.SuccessResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
+                FootballApiLeaguesParameters.Empty(),
+                []
+            ), new ConfigureResponseOptions
+            {
+                Capture = req => request = req
+            }
+        );
+        
+        await _client.GetLeaguesAsync(new FootballApiLeaguesParameters(
+            Id: 1,
+            Name: "Three",
+            Country: "USA",
+            Code: "Cod",
+            Season: 2012,
+            Team: 4,
+            Type: "league",
+            Current: true,
+            Search: "Bob",
+            Last: "Wilson"
+        ));
+        
+        var queryString = request.ParseQueryString();
+        Assert.Contains("1", queryString.Get("id"));
+        Assert.Contains("three", queryString.Get("name"));
+        Assert.Contains("usa", queryString.Get("country"));
+        Assert.Contains("cod", queryString.Get("code"));
+        Assert.Contains("2012", queryString.Get("season"));
+        Assert.Contains("4", queryString.Get("team"));
+        Assert.Contains("league", queryString.Get("type"));
+        Assert.Contains("true", queryString.Get("current"));
+        Assert.Contains("bob", queryString.Get("search"));
+        Assert.Contains("wilson", queryString.Get("last"));
     }
 }
