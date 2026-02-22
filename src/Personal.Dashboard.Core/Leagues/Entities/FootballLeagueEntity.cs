@@ -7,6 +7,18 @@ public class FootballLeagueEntity
 {
     public Guid Id { get; set; }
     public string Name { get; set; }
+    
+    public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
+
+    public void AddAlias(string source, string alias)
+    {
+        Aliases.Add(new FootballLeagueAlias
+        {
+            AliasSource = source,
+            Alias = alias,
+            League = this,
+        });
+    }
 }
 
 public class FootballLeagueEntityConfiguration : IEntityTypeConfiguration<FootballLeagueEntity>
@@ -16,5 +28,9 @@ public class FootballLeagueEntityConfiguration : IEntityTypeConfiguration<Footba
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).IsRequired().ValueGeneratedOnAdd();
         builder.Property(p => p.Name).IsRequired();
+        
+        builder.HasMany(p => p.Aliases)
+            .WithOne(a => a.League)
+            .HasForeignKey(a => a.LeagueId);
     }
 }

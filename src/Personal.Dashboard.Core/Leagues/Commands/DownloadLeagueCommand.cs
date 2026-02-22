@@ -1,4 +1,5 @@
 using MediatR;
+using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
 using Personal.Dashboard.Core.Common.Storage;
@@ -17,10 +18,18 @@ public class DownloadLeagueCommandHandler(
     {
         var parameters = new FootballApiLeaguesParameters(Name: request.Name);
         var response = await client.GetLeaguesAsync(parameters);
-        context.Set<FootballLeagueEntity>().Add(new FootballLeagueEntity
-        {
-            Name = response.Response[0].League.Name
-        });
+        var entities = response.Response.Select(ToEntity);
+        context.Set<FootballLeagueEntity>().AddRange(entities);
         await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static FootballLeagueEntity ToEntity(FootballApiLeague league)
+    {
+        var entity = new FootballLeagueEntity
+        {
+            Name = league.League.Name
+        };
+        entity.AddAlias(DataSource.FootballApi, $"{league.League.Id}");
+        return entity;
     }
 }

@@ -6,6 +6,7 @@ using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
 using Personal.Dashboard.Core.Common.Storage;
+using Personal.Dashboard.Core.Common.Validation;
 
 namespace Personal.Dashboard.Core;
 
@@ -43,6 +44,8 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
         services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssemblies(assemblies);
+            cfg.AddOpenBehavior(typeof(CqrsLoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(CqrsValidationPipelineBehavior<,>));
         });
         services.AddTransient<ICommandBus, CommandBus>();
         services.AddTransient<ICqrsBus, CqrsBus>();
