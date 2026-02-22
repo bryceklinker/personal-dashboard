@@ -4,4 +4,13 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Bogus" Version="35.6.5" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Personal.Dashboard.Core\Personal.Dashboard.Core.csproj" />
+    <ProjectReference Include="..\Personal.Dashboard.Test.Support\Personal.Dashboard.Test.Support.csproj" />
+  </ItemGroup>
+
 </Project>
