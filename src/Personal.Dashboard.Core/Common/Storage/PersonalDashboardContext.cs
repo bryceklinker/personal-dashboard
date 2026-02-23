@@ -8,4 +8,13 @@ public class PersonalDashboardContext(DbContextOptions<PersonalDashboardContext>
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(PersonalDashboardContext).Assembly);
     }
+
+    public void AddMany<T>(IEnumerable<T> entities)
+        where T : notnull
+    {
+        foreach (var entity in entities)
+        {
+            Add(entity);
+        }
+    }
 };

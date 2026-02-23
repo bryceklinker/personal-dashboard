@@ -5,6 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
+using Personal.Dashboard.Core.Common.Cqrs.Queries;
+using Personal.Dashboard.Core.Common.Logging;
 using Personal.Dashboard.Core.Common.Storage;
 using Personal.Dashboard.Core.Common.Validation;
 
@@ -47,6 +49,7 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
             cfg.AddOpenBehavior(typeof(CqrsLoggingBehavior<,>));
             cfg.AddOpenBehavior(typeof(CqrsValidationPipelineBehavior<,>));
         });
+        services.AddTransient<IQueryBus, QueryBus>();
         services.AddTransient<ICommandBus, CommandBus>();
         services.AddTransient<ICqrsBus, CqrsBus>();
         return services;

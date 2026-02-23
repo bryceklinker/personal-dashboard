@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
+using Personal.Dashboard.Core.Common.Cqrs.Queries;
 using Personal.Dashboard.Core.Tests.Support;
 using Personal.Dashboard.Test.Support.Common.Logging;
 
@@ -50,6 +51,33 @@ public class CqrsLoggingBehaviorTests
         Assert.Single(logItems);
         Assert.StartsWith("Failed command", logItems[0].Message);
     }
+
+    [Fact]
+    public async Task WhenQueryIsExecutedThenLogsStartOfQuery()
+    {
+        await Assert.ThrowsAsync<NotImplementedException>(() => _cqrsBus.QueryAsync(new FailingQuery()));
+        var logItems = _logger.GetLogItems(LogLevel.Information);
+        Assert.Single(logItems);
+        Assert.StartsWith("Starting query", logItems[0].Message);
+    }
+    
+    [Fact]
+    public async Task WhenQueryIsExecutedThenLogsEndOfQuery()
+    {
+        await _cqrsBus.QueryAsync(new SuccessQuery());
+        var logItems = _logger.GetLogItems(LogLevel.Information);
+        Assert.Equal(2, logItems.Length);
+        Assert.StartsWith("Finished query", logItems[0].Message);
+    }
+    
+    [Fact]
+    public async Task WhenQueryIsExecutedThenLogsQueryFailure()
+    {
+        await Assert.ThrowsAsync<NotImplementedException>(() => _cqrsBus.QueryAsync(new FailingQuery()));
+        var logItems = _logger.GetLogItems(LogLevel.Error);
+        Assert.Single(logItems);
+        Assert.StartsWith("Failed query", logItems[0].Message);
+    }
 }
 
 public record FailingCommand : ICommand;
@@ -71,3 +99,23 @@ public class SuccessCommandHandler : IRequestHandler<SuccessCommand>
         return Task.CompletedTask;
     }
 }
+
+public record FailingQuery : IQuery<object>;
+
+public class FailingQueryHandler : IQueryHandler<FailingQuery, object>
+{
+    public Task<object> Handle(FailingQuery request, CancellationToken cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+public record SuccessQuery : IQuery<object>;
+
+public class SuccessQueryHandler : IQueryHandler<SuccessQuery, object>
+{
+    public Task<object> Handle(SuccessQuery request, CancellationToken cancellationToken)
+    {
+        return Task.FromResult<object>(new { });
+    }
+} 

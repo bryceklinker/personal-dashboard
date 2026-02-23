@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
 
-namespace Personal.Dashboard.Core.Common.Cqrs;
+namespace Personal.Dashboard.Core.Common.Logging;
 
 public class CqrsLoggingBehavior<TRequest, TResult>(ILoggerFactory loggerFactory) : IPipelineBehavior<TRequest, TResult>
     where TRequest : notnull
@@ -15,7 +15,7 @@ public class CqrsLoggingBehavior<TRequest, TResult>(ILoggerFactory loggerFactory
         var stopwatch = new Stopwatch();
         var requestType = request is ICommand || request is ICommand<TResult>
             ? "command"
-            : "";
+            : "query";
         Exception? exception = null;
         
         using (logger.BeginScope(new Dictionary<string, string>

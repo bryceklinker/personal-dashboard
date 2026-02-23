@@ -1,4 +1,3 @@
-using MediatR;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
@@ -12,7 +11,7 @@ public record DownloadLeagueCommand(string Name) : ICommand;
 public class DownloadLeagueCommandHandler(
     IFootballApiClient client,
     PersonalDashboardContext context
-) : IRequestHandler<DownloadLeagueCommand>
+) : ICommandHandler<DownloadLeagueCommand>
 {
     public async Task Handle(DownloadLeagueCommand request, CancellationToken cancellationToken)
     {
