@@ -6,6 +6,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Personal.Dashboard.Api.Host\Personal.Dashboard.Api.Host.csproj" />
+    <ProjectReference Include="..\Personal.Dashboard.Core.Tests\Personal.Dashboard.Core.Tests.csproj" />
+    <ProjectReference Include="..\Personal.Dashboard.Test.Support\Personal.Dashboard.Test.Support.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.3" />
   </ItemGroup>
 
 </Project>
