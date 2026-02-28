@@ -1,6 +1,7 @@
+using Personal.Dashboard.Api.Host;
+
 var builder = WebApplication.CreateBuilder(args)
-    .AddServiceDefaults();
-builder.Services.AddControllers();
+    .AddPersonalDashboardApi();
 
 var app = builder.Build();
 app.MapDefaultEndpoints();

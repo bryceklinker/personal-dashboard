@@ -16,6 +16,7 @@
     <Project Path="src/Personal.Dashboard.Aspire.Defaults/Personal.Dashboard.Aspire.Defaults.csproj" />
     <Project Path="src/Personal.Dashboard.Core/Personal.Dashboard.Core.csproj" />
     <Project Path="src/Personal.Dashboard.Host/Personal.Dashboard.Host.csproj" />
+    <Project Path="src/Personal.Dashboard.Migrations.Host/Personal.Dashboard.Migrations.Host.csproj" />
     <Project Path="src/Personal.Dashboard.Models/Personal.Dashboard.Models.csproj" />
     <Project Path="src/Personal.Dashboard.Web.Host/Personal.Dashboard.Web.Host.csproj" />
   </Folder>

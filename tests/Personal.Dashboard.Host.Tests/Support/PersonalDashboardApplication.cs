@@ -9,6 +9,11 @@ public class PersonalDashboardApplication(DistributedApplication app) : IAsyncDi
     
     public static async Task<PersonalDashboardApplication> StartAsync()
     {
+        Environment.SetEnvironmentVariable("DB_HOST", "localhost");
+        Environment.SetEnvironmentVariable("DB_PORT", "5432");
+        Environment.SetEnvironmentVariable("DB_USER", "user");
+        Environment.SetEnvironmentVariable("DB_PASSWORD", "password");
+        
         var host = await DistributedApplicationTestingBuilder.CreateAsync<Projects.Personal_Dashboard_Host>();
         host.Services.AddLogging(logging =>
         {

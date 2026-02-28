@@ -1,0 +1,12 @@
+<MudDrawer Open="IsNavigationOpen">
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.All">
+            Dashboard
+        </MudNavLink>
+    </MudNavMenu>
+</MudDrawer>
+
+@code {
+    [Parameter]
+    public bool IsNavigationOpen { get; set; }
+}

@@ -1,0 +1,14 @@
+<MudAppBar>
+    <MudIconButton Icon="@Icons.Material.Filled.Menu"
+                   OnClick="HandleMenuClick"/>
+</MudAppBar>
+
+@code {
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnMenuClick { get; set; }
+
+    private async Task HandleMenuClick(MouseEventArgs args)
+    {
+        await OnMenuClick.InvokeAsync(args);
+    }
+}

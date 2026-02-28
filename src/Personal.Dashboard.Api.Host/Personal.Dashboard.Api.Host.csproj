@@ -3,4 +3,8 @@
     <ProjectReference Include="..\Personal.Dashboard.Aspire.Defaults\Personal.Dashboard.Aspire.Defaults.csproj" />
     <ProjectReference Include="..\Personal.Dashboard.Core\Personal.Dashboard.Core.csproj" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.1" />
+  </ItemGroup>
 </Project>
