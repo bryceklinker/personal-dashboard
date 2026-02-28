@@ -3,7 +3,7 @@ using MediatR;
 
 namespace Personal.Dashboard.Core.Common.Validation;
 
-public class CqrsValidationPipelineBehavior<TRequest, TResult>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResult>
+public class CqrsValidationPipelineBehavior<TRequest, TResult>(IEnumerable<IValidator<TRequest>> validators) : IPipelineBehavior<TRequest, TResult> where TRequest : notnull
 {
     public async Task<TResult> Handle(TRequest request, RequestHandlerDelegate<TResult> next, CancellationToken cancellationToken)
     {

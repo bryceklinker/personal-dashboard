@@ -5,11 +5,11 @@ namespace Personal.Dashboard.Core.Leagues.Entities;
 
 public class FootballLeagueAlias
 {
-    public string Alias { get; set; }
-    public string AliasSource { get; set; }
-    public Guid LeagueId { get; set; }
+    public string Alias { get; set; } = "";
+    public string AliasSource { get; set; } = "";
+    public Guid LeagueId { get; set; } = Guid.Empty;
     
-    public FootballLeagueEntity League { get; set; }
+    public required FootballLeagueEntity League { get; set; }
 }
 
 public class FootballLeagueAliasConfiguration : IEntityTypeConfiguration<FootballLeagueAlias>

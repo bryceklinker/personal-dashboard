@@ -7,6 +7,13 @@ public static class PersonalDashboardApiServiceCollectionExtensions
 {
     public static IServiceCollection AddPersonalDashboardApi(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddCors(cors =>
+        {
+            cors.AddDefaultPolicy(policy =>
+            {
+                policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin();
+            });
+        });
         services.AddControllers();
         services.AddPersonalDashboardCore(opts =>
         {

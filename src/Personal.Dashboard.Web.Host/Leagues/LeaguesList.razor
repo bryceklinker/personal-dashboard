@@ -1,0 +1,33 @@
+@using Personal.Dashboard.Models
+
+@inject HttpClient Client
+
+<MudGrid>
+    <MudItem xs="12">
+        
+    </MudItem>
+    <MudItem xs="12">
+        <MudPaper Class="d-flex flex-1">
+            <MudList Style="height: 100%" T="FootballLeagueModel">
+                @foreach (var league in Leagues.Items)
+                {
+                    <MudListItem>
+                        <MudText Typo="Typo.body1">@league.Name</MudText>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+
+
+@code {
+    public PagedListResultModel<FootballLeagueModel> Leagues { get; set; } = PagedListResultModel<FootballLeagueModel>.Empty();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var response = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues");
+    }
+
+}

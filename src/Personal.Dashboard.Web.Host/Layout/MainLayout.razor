@@ -1,15 +1,15 @@
 ﻿@inherits LayoutComponentBase
 
-<MudThemeProvider/>
+<MudThemeProvider IsDarkMode="true"/>
 <MudPopoverProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<MudLayout>
+<MudLayout Class="d-flex flex-1">
     <MainAppBar OnMenuClick="ToggleMenu"/>
     <NavigationMenu IsNavigationOpen="_isNavigationOpen"/>
-    <MudMainContent>
-        <MudContainer>
+    <MudMainContent Class="d-flex flex-1">
+        <MudContainer Class="d-flex flex-1 mt-4">
             @Body
         </MudContainer>
     </MudMainContent>

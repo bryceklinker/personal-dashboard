@@ -9,7 +9,16 @@ public static class PersonalDashboardWebAssemblyBuilderExtensions
         this WebAssemblyHostBuilder builder
     )
     {
-        builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+        builder.Services.AddServiceDiscovery();
+        builder.Services.AddHttpClient()
+            .ConfigureHttpClientDefaults(http =>
+            {
+                http.AddServiceDiscovery();
+                http.ConfigureHttpClient(client =>
+                {
+                    client.BaseAddress = new Uri("https+http://api");
+                });
+            });
         builder.Services.AddMudServices();
         return builder;
     }

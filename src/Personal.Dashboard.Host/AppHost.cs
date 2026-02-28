@@ -19,7 +19,7 @@ var api = builder.AddProject<Projects.Personal_Dashboard_Api_Host>(PersonalDashb
     .WithDeveloperCertificateTrust(trust: true)
     .WithExternalHttpEndpoints();
 
-builder.AddProject<Projects.Personal_Dashboard_Web_Host>(PersonalDashboardServiceName.Web)
+builder.AddStandaloneBlazorWebAssemblyProject<Projects.Personal_Dashboard_Web_Host>(PersonalDashboardServiceName.Web)
     .WithReference(api)
     .WithDeveloperCertificateTrust(trust: true)
     .WithExternalHttpEndpoints();

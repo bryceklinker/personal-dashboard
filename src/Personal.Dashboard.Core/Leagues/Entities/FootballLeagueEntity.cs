@@ -5,8 +5,8 @@ namespace Personal.Dashboard.Core.Leagues.Entities;
 
 public class FootballLeagueEntity
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; }
+    public Guid Id { get; set; } = Guid.Empty;
+    public string Name { get; set; } = "";
     
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
 
