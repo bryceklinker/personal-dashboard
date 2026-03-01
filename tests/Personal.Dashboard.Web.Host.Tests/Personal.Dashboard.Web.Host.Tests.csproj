@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\src\Personal.Dashboard.Web.Host\Personal.Dashboard.Web.Host.csproj" />
+	  <ProjectReference Include="..\Personal.Dashboard.Test.Support\Personal.Dashboard.Test.Support.csproj" />
 	</ItemGroup>
 
 </Project>

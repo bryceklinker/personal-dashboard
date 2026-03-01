@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
-using MudBlazor.Services;
 
 namespace Personal.Dashboard.Web.Host;
 
@@ -9,17 +8,7 @@ public static class PersonalDashboardWebAssemblyBuilderExtensions
         this WebAssemblyHostBuilder builder
     )
     {
-        builder.Services.AddServiceDiscovery();
-        builder.Services.AddHttpClient()
-            .ConfigureHttpClientDefaults(http =>
-            {
-                http.AddServiceDiscovery();
-                http.ConfigureHttpClient(client =>
-                {
-                    client.BaseAddress = new Uri("https+http://api");
-                });
-            });
-        builder.Services.AddMudServices();
+        builder.Services.AddPersonalDashboardWeb();
         return builder;
     }
 }

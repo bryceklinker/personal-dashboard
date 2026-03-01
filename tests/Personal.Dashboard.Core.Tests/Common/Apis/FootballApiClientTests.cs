@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
-using Personal.Dashboard.Core.Common.Http;
 using Personal.Dashboard.Core.Tests.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
 using Personal.Dashboard.Test.Support.Common.Logging;

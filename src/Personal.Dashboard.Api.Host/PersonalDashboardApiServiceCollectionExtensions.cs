@@ -18,11 +18,12 @@ public static class PersonalDashboardApiServiceCollectionExtensions
         services.AddPersonalDashboardCore(opts =>
         {
             opts.AddAssembly(typeof(PersonalDashboardApiServiceCollectionExtensions).Assembly);
+            var connectionString = configuration.GetConnectionString("db");
+            if (string.IsNullOrEmpty(connectionString))
+                return;
             opts.ConfigureDbContext = ctx =>
             {
-                var connectionString = configuration.GetConnectionString("db");
-                ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
-                ctx.UseNpgsql(connectionString);
+                if (configuration.HasDbConnectionString()) ctx.UseNpgsql(connectionString);
             };
         });
         return services;

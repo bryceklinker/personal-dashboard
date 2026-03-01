@@ -4,11 +4,11 @@
 
 <MudGrid>
     <MudItem xs="12">
-        
+
     </MudItem>
     <MudItem xs="12">
         <MudPaper Class="d-flex flex-1">
-            <MudList Style="height: 100%" T="FootballLeagueModel">
+            <MudList Class="d-flex flex-1" T="FootballLeagueModel">
                 @foreach (var league in Leagues.Items)
                 {
                     <MudListItem>
@@ -16,6 +16,19 @@
                     </MudListItem>
                 }
             </MudList>
+            <MudStack>
+                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
+                               OnClick="@GoToNext"
+                               Disabled="@(!HasNextPage)"
+                               UserAttributes="@(
+                                               new Dictionary<string, object?>
+                                               {
+                                                   { "aria-label", "next" },
+                                                   { "role", "button" }
+                                               }
+                                               )"
+                />
+            </MudStack>
         </MudPaper>
     </MudItem>
 </MudGrid>
@@ -23,11 +36,21 @@
 
 
 @code {
-    public PagedListResultModel<FootballLeagueModel> Leagues { get; set; } = PagedListResultModel<FootballLeagueModel>.Empty();
+    private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } = PagedListResultModel<FootballLeagueModel>.Empty();
+
+    private bool HasNextPage => Leagues.Total > Leagues.Limit;
 
     protected override async Task OnInitializedAsync()
     {
-        var response = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues");
+        Leagues = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues")
+                  ?? PagedListResultModel<FootballLeagueModel>.Empty();
+    }
+
+    private async Task GoToNext()
+    {
+        Leagues = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues?offset=10")
+                  ?? PagedListResultModel<FootballLeagueModel>.Empty();
+        StateHasChanged();
     }
 
 }

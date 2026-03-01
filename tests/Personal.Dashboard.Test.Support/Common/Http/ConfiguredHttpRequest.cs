@@ -5,7 +5,7 @@ public record ConfiguredHttpRequest
     private readonly HttpRequestMessage _request;
     private readonly HttpResponseMessage _response;
     private readonly ConfigureResponseOptions? _options;
-
+    
     private Action<HttpRequestMessage> Capture => _options?.Capture ?? (_ => { });
     private Func<HttpRequestMessage, Task> CaptureAsync => _options?.CaptureAsync ?? (_ => Task.CompletedTask);
     

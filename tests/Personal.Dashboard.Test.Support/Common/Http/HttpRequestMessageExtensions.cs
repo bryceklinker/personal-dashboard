@@ -1,7 +1,16 @@
+using System.Collections.Specialized;
+
 namespace Personal.Dashboard.Test.Support.Common.Http;
 
-internal static class HttpRequestMessageExtensions
+public static class HttpRequestMessageExtensions
 {
+    public static NameValueCollection ParseQueryString(this HttpRequestMessage? request)
+    {
+        return request is null
+            ? new NameValueCollection()
+            : request.RequestUri.ParseQueryString();
+    }
+    
     public static async Task<HttpRequestMessage> CloneAsync(this HttpRequestMessage request)
     {
         var clone = new HttpRequestMessage(request.Method, request.RequestUri)

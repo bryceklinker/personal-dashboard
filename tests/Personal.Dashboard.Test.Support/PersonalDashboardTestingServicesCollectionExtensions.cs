@@ -14,7 +14,10 @@ public static class PersonalDashboardTestingServicesCollectionExtensions
         var logger = new FakeLogger();
         services.AddSingleton(handler);
         services.AddSingleton(logger);
-        services.ReplaceService<IHttpClientFactory, FakeHttpClientFactory>(new FakeHttpClientFactory(handler));
+        services.ConfigureHttpClientDefaults(b =>
+        {
+            b.ConfigurePrimaryHttpMessageHandler(() => handler);
+        });
         services.ReplaceService<ILoggerFactory, FakeLoggerFactory>(new FakeLoggerFactory(logger));
         return services;
     }

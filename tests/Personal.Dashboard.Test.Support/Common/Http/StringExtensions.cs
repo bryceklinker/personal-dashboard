@@ -1,7 +1,7 @@
 using System.Collections.Specialized;
 using System.Web;
 
-namespace Personal.Dashboard.Core.Common.Http;
+namespace Personal.Dashboard.Test.Support.Common.Http;
 
 public static class StringExtensions
 {
