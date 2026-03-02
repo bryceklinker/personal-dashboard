@@ -1,6 +1,7 @@
 @using Personal.Dashboard.Models
+@using Personal.Dashboard.Web.Host.Common.Apis
 
-@inject HttpClient Client
+@inject PersonalDashboardApiClient Client
 
 <MudGrid>
     <MudItem xs="12">
@@ -17,17 +18,16 @@
                 }
             </MudList>
             <MudStack>
-                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
-                               OnClick="@GoToNext"
-                               Disabled="@(!HasNextPage)"
-                               UserAttributes="@(
-                                               new Dictionary<string, object?>
-                                               {
-                                                   { "aria-label", "next" },
-                                                   { "role", "button" }
-                                               }
-                                               )"
+                <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
+                               OnClick="@GoToPrevious"
+                               role="button"
+                               aria-label="previous"
                 />
+                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
+                            OnClick="@GoToNext"
+                            Disabled="@(!HasNextPage)"
+                            role="button"
+                            aria-label="next"/>
             </MudStack>
         </MudPaper>
     </MudItem>
@@ -42,14 +42,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Leagues = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues")
-                  ?? PagedListResultModel<FootballLeagueModel>.Empty();
+        Leagues = await Client.GetLeaguesAsync();
     }
 
     private async Task GoToNext()
     {
-        Leagues = await Client.GetFromJsonAsync<PagedListResultModel<FootballLeagueModel>>("/leagues?offset=10")
-                  ?? PagedListResultModel<FootballLeagueModel>.Empty();
+        Leagues = await Client.GetLeaguesAsync(new PagedListParameters(offset: 10));
+        StateHasChanged();
+    }
+
+    private async Task GoToPrevious()
+    {
+        Leagues = await Client.GetLeaguesAsync(new PagedListParameters(offset: 0));
         StateHasChanged();
     }
 

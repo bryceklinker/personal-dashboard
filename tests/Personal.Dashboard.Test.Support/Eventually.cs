@@ -20,12 +20,13 @@ public static class Eventually
     {
         var opts = options ?? EventuallyOptions.Default;
         var endTime = DateTimeOffset.UtcNow.Add(opts.WaitTime);
-        Exception? exception = null;
+        Exception? exception;
         do
         {
             try
             {
                 await assertion();
+                return;
             }
             catch (Exception e)
             {

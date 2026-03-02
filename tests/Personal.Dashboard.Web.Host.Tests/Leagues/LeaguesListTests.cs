@@ -43,4 +43,29 @@ public class LeaguesListTests
             Assert.Equal("10", queryParams?.Get("offset"));
         });
     }
+
+    [Fact]
+    public async Task WhenGoingToPreviousPageThenGetsPreviousPageOfLeagues()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        HttpRequestMessage? request = null;
+        await context.HttpHandler.SetupLeagues(
+            total: 100,
+            limit: 10,
+            offset: 10,
+            leagues: DataFactory.Many(DataFactory.FootballLeagueModel, 10),
+            options: new ConfigureResponseOptions(
+                Capture: req => request = req 
+            )
+        );
+
+        var page = context.Render<LeaguesList>();
+        await page.FindByRole("button", new FindByRoleOptions(Label: "previous")).ClickAsync();
+        
+        await Eventually.Assert(() =>
+        {
+            var queryParams = request?.ParseQueryString();
+            Assert.Equal("0", queryParams?.Get("offset"));
+        });
+    }
 }

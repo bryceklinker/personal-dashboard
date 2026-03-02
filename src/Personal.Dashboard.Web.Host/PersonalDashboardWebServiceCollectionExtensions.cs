@@ -1,4 +1,5 @@
 using MudBlazor.Services;
+using Personal.Dashboard.Web.Host.Common.Apis;
 
 namespace Personal.Dashboard.Web.Host;
 
@@ -11,10 +12,11 @@ public static class PersonalDashboardWebServiceCollectionExtensions
             .ConfigureHttpClientDefaults(http =>
             {
                 http.AddServiceDiscovery();
-                http.ConfigureHttpClient(client =>
-                {
-                    client.BaseAddress = new Uri("https+http://api");
-                });
+            });
+        services.AddHttpClient<PersonalDashboardApiClient>()
+            .ConfigureHttpClient(client =>
+            {
+                client.BaseAddress = new Uri("https+http://api");
             });
         services.AddMudServices();
         return services;
