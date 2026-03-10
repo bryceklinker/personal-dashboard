@@ -2,10 +2,17 @@
 @using Personal.Dashboard.Web.Host.Common.Apis
 
 @inject PersonalDashboardApiClient Client
+@implements IAsyncDisposable
 
 <MudGrid>
     <MudItem xs="12">
-
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">Leagues</MudText>
+            <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
+                           OnClick="@OnRefreshClicked"
+                           role="button"
+                           aria-label="refresh" />
+        </MudStack>
     </MudItem>
     <MudItem xs="12">
         <MudPaper Class="d-flex flex-1">
@@ -14,6 +21,10 @@
                 {
                     <MudListItem>
                         <MudText Typo="Typo.body1">@league.Name</MudText>
+                        @if (league.LastRefreshed.HasValue)
+                        {
+                            <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
+                        }
                     </MudListItem>
                 }
             </MudList>
@@ -21,40 +32,64 @@
                 <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
                                OnClick="@GoToPrevious"
                                role="button"
-                               aria-label="previous"
-                />
+                               aria-label="previous" />
                 <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
-                            OnClick="@GoToNext"
-                            Disabled="@(!HasNextPage)"
-                            role="button"
-                            aria-label="next"/>
+                               OnClick="@GoToNext"
+                               Disabled="@(!HasNextPage)"
+                               role="button"
+                               aria-label="next" />
             </MudStack>
         </MudPaper>
     </MudItem>
 </MudGrid>
 
-
-
 @code {
-    private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } = PagedListResultModel<FootballLeagueModel>.Empty();
+    private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } =
+        PagedListResultModel<FootballLeagueModel>.Empty();
 
     private bool HasNextPage => Leagues.Total > Leagues.Limit;
+    private IDisposable? _subscription;
+    private PagedListParameters _currentParameters = PagedListParameters.Default();
 
     protected override async Task OnInitializedAsync()
     {
-        Leagues = await Client.GetLeaguesAsync();
+        _subscription = Client.Subscribe<LeaguesRefreshedDashboardEvent>(async () =>
+        {
+            await LoadLeaguesAsync();
+            StateHasChanged();
+        });
+        await LoadLeaguesAsync();
+    }
+
+    private async Task LoadLeaguesAsync()
+    {
+        Leagues = await Client.GetLeaguesAsync(_currentParameters);
+    }
+
+    private async Task OnRefreshClicked()
+    {
+        await Client.RefreshLeaguesAsync();
     }
 
     private async Task GoToNext()
     {
-        Leagues = await Client.GetLeaguesAsync(new PagedListParameters(offset: 10));
+        _currentParameters = new PagedListParameters(
+            offset: _currentParameters.Offset + _currentParameters.Limit);
+        await LoadLeaguesAsync();
         StateHasChanged();
     }
 
     private async Task GoToPrevious()
     {
-        Leagues = await Client.GetLeaguesAsync(new PagedListParameters(offset: 0));
+        _currentParameters = new PagedListParameters(
+            offset: Math.Max(0, _currentParameters.Offset - _currentParameters.Limit));
+        await LoadLeaguesAsync();
         StateHasChanged();
     }
 
+    public ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        return ValueTask.CompletedTask;
+    }
 }

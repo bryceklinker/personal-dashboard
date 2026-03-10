@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using Personal.Dashboard.Models;
 using Personal.Dashboard.Test.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
 using Personal.Dashboard.Web.Host.Leagues;
@@ -67,5 +68,50 @@ public class LeaguesListTests
             var queryParams = request?.ParseQueryString();
             Assert.Equal("0", queryParams?.Get("offset"));
         });
+    }
+
+    [Fact]
+    public async Task WhenRefreshButtonClickedThenCallsRefreshEndpoint()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        HttpRequestMessage? refreshRequest = null;
+        await context.HttpHandler.SetupLeagues();
+        await context.HttpHandler.SetupRefreshLeagues(
+            new ConfigureResponseOptions(Capture: req => refreshRequest = req)
+        );
+
+        var page = context.Render<LeaguesList>();
+        await page.FindByRole("button", new FindByRoleOptions(Label: "refresh")).ClickAsync();
+
+        await Eventually.Assert(() => Assert.NotNull(refreshRequest));
+    }
+
+    [Fact]
+    public async Task WhenLeaguesRefreshedEventReceivedThenRefetchesLeagues()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var refreshedLeague = DataFactory.FootballLeagueModel();
+        await context.HttpHandler.SetupLeagues(leagues: [refreshedLeague]);
+
+        var page = context.Render<LeaguesList>();
+        await context.HubFactory.Connection.SimulateEventAsync(new LeaguesRefreshedDashboardEvent());
+
+        await Eventually.Assert(() =>
+            Assert.Contains(page.FindAll(".mud-list-item"),
+                item => item.TextContent.Contains(refreshedLeague.Name)));
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasLastRefreshedThenDisplaysIt()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var lastRefreshed = DateTimeOffset.UtcNow.AddHours(-2);
+        var league = DataFactory.FootballLeagueModel() with { LastRefreshed = lastRefreshed };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        var page = context.Render<LeaguesList>();
+
+        await Eventually.Assert(() =>
+            Assert.Contains(lastRefreshed.ToString("g"), page.Markup));
     }
 }

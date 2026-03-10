@@ -19,9 +19,11 @@ public abstract record QueryParameters
 
     public void Add(string key, string value)
     {
-        _parameters.Add(key, value);
+        _parameters.Add(key.ToLower(), value);
     }
-    
+
+    protected string Get(string key) => _parameters[key.ToLower()];
+
     public string ToQueryString()
     {
         var pairs = _parameters.Select(k => $"{k.Key}={HttpUtility.UrlEncode(k.Value)}");
@@ -36,6 +38,9 @@ public record PagedListParameters : QueryParameters
         Add(nameof(offset), offset.ToString());
         Add(nameof(limit), limit.ToString());
     }
-    
+
+    public long Offset => long.Parse(Get(nameof(Offset)));
+    public long Limit => long.Parse(Get(nameof(Limit)));
+
     public static PagedListParameters Default() => new();
 }
