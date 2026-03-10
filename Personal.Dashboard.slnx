@@ -8,6 +8,9 @@
   <Folder Name="/.github/workflows/">
     <File Path=".github\workflows\main.yaml" />
   </Folder>
+  <Folder Name="/.docs/">
+    <File Path="docs/superpowers/specs/2026-03-10-leagues-refresh-design.md" />
+  </Folder>
   <Folder Name="/.scm/">
     <File Path=".gitignore" />
   </Folder>
