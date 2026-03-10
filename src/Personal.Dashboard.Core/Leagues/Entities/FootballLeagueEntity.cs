@@ -7,7 +7,8 @@ public class FootballLeagueEntity
 {
     public Guid Id { get; set; } = Guid.Empty;
     public string Name { get; set; } = "";
-    
+    public DateTimeOffset? LastRefreshed { get; set; }
+
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
 
     public void AddAlias(string source, string alias)

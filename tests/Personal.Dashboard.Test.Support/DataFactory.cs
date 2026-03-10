@@ -10,7 +10,8 @@ public static class DataFactory
     {
         return new FootballLeagueModel(
             Faker.Random.Guid(),
-            Faker.Company.CompanyName()
+            Faker.Company.CompanyName(),
+            Faker.Date.RecentOffset()
         );
     }
 
