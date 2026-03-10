@@ -4,9 +4,9 @@ on: [push]
 jobs:
   build_and_test:
     name: Build And Test
-    runs-on: macos-14
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v4
         name: Checkout Code
         with:
           fetch-depth: 0
