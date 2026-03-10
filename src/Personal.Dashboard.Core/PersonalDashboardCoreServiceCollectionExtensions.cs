@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
+using Personal.Dashboard.Core.Common.Cqrs.Events;
 using Personal.Dashboard.Core.Common.Cqrs.Queries;
 using Personal.Dashboard.Core.Common.Logging;
 using Personal.Dashboard.Core.Common.Storage;
@@ -51,7 +52,9 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
         });
         services.AddTransient<IQueryBus, QueryBus>();
         services.AddTransient<ICommandBus, CommandBus>();
-        services.AddTransient<ICqrsBus, CqrsBus>();
+        services.AddTransient<IEventBus, EventBus>();
+        services.AddTransient<CqrsBus>();
+        services.AddTransient<ICqrsBus>(sp => sp.GetRequiredService<CqrsBus>());
         return services;
     }
     
