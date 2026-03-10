@@ -18,4 +18,15 @@ public static class PersonalDashboardLeaguesApiExtensions
         var result = DataFactory.PagedListModel(total, offset, limit, leagues);
         await handler.SetupGetJsonResponseAsync("http://api/leagues", result, options);
     }
+
+    public static async Task SetupRefreshLeagues(
+        this FakeHttpMessageHandler handler,
+        ConfigureResponseOptions? options = null)
+    {
+        await handler.SetupResponseAsync(
+            new HttpRequestMessage(HttpMethod.Post, "http://api/leagues/refresh"),
+            new HttpResponseMessage(System.Net.HttpStatusCode.OK),
+            options
+        );
+    }
 }
