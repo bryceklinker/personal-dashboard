@@ -11,6 +11,7 @@
   <Folder Name="/.docs/">
     <File Path="CLAUDE.md" />
     <File Path="docs/superpowers/specs/2026-03-10-leagues-refresh-design.md" />
+    <File Path="docs/superpowers/plans/2026-03-10-leagues-refresh.md" />
   </Folder>
   <Folder Name="/.scm/">
     <File Path=".gitignore" />
