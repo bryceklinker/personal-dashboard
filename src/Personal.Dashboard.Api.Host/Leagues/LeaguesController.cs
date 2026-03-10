@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Personal.Dashboard.Api.Host.Common;
 using Personal.Dashboard.Core.Common.Cqrs;
+using Personal.Dashboard.Core.Leagues.Commands;
 using Personal.Dashboard.Core.Leagues.Queries;
 
 namespace Personal.Dashboard.Api.Host.Leagues;
@@ -13,5 +14,11 @@ public class LeaguesController(ICqrsBus cqrsBus) : CqrsController(cqrsBus)
     public async Task<IActionResult> GetLeagues()
     {
         return await QueryAsync(new GetLeaguesQuery());
-    } 
+    }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshLeagues()
+    {
+        return await ExecuteAsync(new RefreshLeaguesCommand());
+    }
 }
