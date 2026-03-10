@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Personal.Dashboard.Api.Host.Common.SignalR;
 using Personal.Dashboard.Core;
 
 namespace Personal.Dashboard.Api.Host;
@@ -15,6 +16,8 @@ public static class PersonalDashboardApiServiceCollectionExtensions
             });
         });
         services.AddControllers();
+        services.AddSignalR();
+        services.AddTransient<ISignalRPublisher, SignalRPublisher>();
         services.AddPersonalDashboardCore(opts =>
         {
             opts.AddAssembly(typeof(PersonalDashboardApiServiceCollectionExtensions).Assembly);
