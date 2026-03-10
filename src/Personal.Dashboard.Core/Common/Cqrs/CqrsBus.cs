@@ -4,10 +4,8 @@ using Personal.Dashboard.Core.Common.Cqrs.Queries;
 
 namespace Personal.Dashboard.Core.Common.Cqrs;
 
-public interface ICqrsBus : ICommandBus, IQueryBus
+public interface ICqrsBus : ICommandBus, IQueryBus, IEventBus
 {
-    Task PublishAsync<TEvent>(TEvent @event, CancellationToken ct = default)
-        where TEvent : IEvent;
 }
 
 public class CqrsBus(
