@@ -1,4 +1,3 @@
-// src/Personal.Dashboard.Core/Common/Cqrs/Events/EventBus.cs
 using MediatR;
 
 namespace Personal.Dashboard.Core.Common.Cqrs.Events;
