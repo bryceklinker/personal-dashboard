@@ -19,6 +19,7 @@ public class LeaguesPageTests
         ]);
 
         var page = context.Render<Host.Leagues.Leagues>();
-        Assert.Equal(3, page.FindComponents<MudListItem<FootballLeagueModel>>().Count);
+        await Eventually.Assert(() =>
+            Assert.Equal(3, page.FindComponents<MudListItem<FootballLeagueModel>>().Count));
     }
 }

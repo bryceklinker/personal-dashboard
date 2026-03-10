@@ -36,6 +36,8 @@ public class LeaguesListTests
         );
 
         var page = context.Render<LeaguesList>();
+        await Eventually.Assert(() =>
+            Assert.False(page.FindByRole("button", new FindByRoleOptions(Label: "next")).IsDisabled()));
         await page.FindByRole("button", new FindByRoleOptions(Label: "next")).ClickAsync();
 
         await Eventually.Assert(() =>

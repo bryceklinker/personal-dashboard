@@ -25,7 +25,7 @@ public record ConfiguredHttpRequest
     {
         var matches = await _request.Matches(request);
         if (!matches)
-            return new HttpResponseMessage(HttpStatusCode.NotFound);
+            return null;
         
         Capture(await request.CloneAsync());
         await CaptureAsync(await request.CloneAsync());

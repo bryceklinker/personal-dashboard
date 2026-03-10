@@ -25,5 +25,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
+      - name: Pull Docker Images
+        run: docker pull postgres:18-alpine
+
       - name: Run Tests
         run: dotnet test --configuration Release --no-build --no-restore
