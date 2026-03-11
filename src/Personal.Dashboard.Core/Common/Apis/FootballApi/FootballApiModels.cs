@@ -134,3 +134,16 @@ public record FootballApiLeaguesResponse(
     FootballApiLeague[] Response
     )
     : FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>("leagues", Parameters, Errors, Results, Paging, Response);
+
+public record FootballApiTeamInfo(long Id, string Name);
+
+public record FootballApiTeam(FootballApiTeamInfo Team);
+
+public record FootballApiTeamsParameters(
+    long? League = null,
+    long? Season = null
+) : FootballApiParameters(new Dictionary<string, object?>
+{
+    { "league", League },
+    { "season", Season }
+});

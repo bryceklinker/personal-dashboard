@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Leagues.Entities;
 
 namespace Personal.Dashboard.Core.Clubs.Entities;
@@ -25,6 +26,12 @@ public class FootballClubEntity
     public void AddLeague(FootballLeagueEntity league)
     {
         Leagues.Add(league);
+    }
+
+    public void UpdateFromFootballApi(FootballApiTeam team)
+    {
+        Name = team.Team.Name;
+        LastRefreshed = DateTimeOffset.UtcNow;
     }
 }
 

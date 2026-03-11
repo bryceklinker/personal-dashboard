@@ -85,6 +85,16 @@ public static class FootballApiDataFactory
         );
     }
 
+    public static FootballApiTeamInfo TeamInfo()
+    {
+        return new FootballApiTeamInfo(Faker.Random.Long(1, 99999), Faker.Company.CompanyName());
+    }
+
+    public static FootballApiTeam Team()
+    {
+        return new FootballApiTeam(TeamInfo());
+    }
+
     public static FootballApiResponse<TParameters, TResponse> SuccessResponse<TParameters, TResponse>(
         TParameters parameters,
         TResponse response

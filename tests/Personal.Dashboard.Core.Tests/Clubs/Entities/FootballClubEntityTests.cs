@@ -1,6 +1,7 @@
 using Personal.Dashboard.Core.Clubs.Entities;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Tests.Support;
+using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core.Tests.Clubs.Entities;
 
@@ -39,5 +40,17 @@ public class FootballClubEntityTests
         var league = PersonalDashboardEntityFactory.FootballLeague();
         club.AddLeague(league);
         Assert.Single(club.Leagues);
+    }
+
+    [Fact]
+    public void WhenUpdateFromFootballApiCalledThenSetsNameAndLastRefreshed()
+    {
+        var club = PersonalDashboardEntityFactory.FootballClub();
+        var team = FootballApiDataFactory.Team();
+
+        club.UpdateFromFootballApi(team);
+
+        Assert.Equal(team.Team.Name, club.Name);
+        Assert.NotNull(club.LastRefreshed);
     }
 }

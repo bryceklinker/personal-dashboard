@@ -9,6 +9,10 @@ public interface IFootballApiClient
     Task<FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>> GetLeaguesAsync(
         FootballApiLeaguesParameters? parameters = null
     );
+
+    Task<FootballApiResponse<FootballApiTeamsParameters, FootballApiTeam[]>> GetTeamsAsync(
+        FootballApiTeamsParameters parameters
+    );
 }
 
 public class FootballApiClient(
@@ -34,6 +38,12 @@ public class FootballApiClient(
         FootballApiLeaguesParameters? parameters = null)
     {
         return await GetAsync<FootballApiLeaguesParameters, FootballApiLeague[]>("/leagues", parameters);
+    }
+
+    public async Task<FootballApiResponse<FootballApiTeamsParameters, FootballApiTeam[]>> GetTeamsAsync(
+        FootballApiTeamsParameters parameters)
+    {
+        return await GetAsync<FootballApiTeamsParameters, FootballApiTeam[]>("/teams", parameters);
     }
 
     private async Task<FootballApiResponse<TParameters, TResponse>> GetAsync<TParameters, TResponse>(string path, TParameters? parameters) 
