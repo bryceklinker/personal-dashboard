@@ -26,7 +26,7 @@ public abstract class CqrsController(ICqrsBus cqrsBus) : ControllerBase
     {
         try
         {
-            await cqrsBus.ExecuteAsync(command).ConfigureAwait(false);
+            await cqrsBus.ExecuteAsync(command, HttpContext.RequestAborted).ConfigureAwait(false);
             return StatusCode(statusCode, command);
         }
         catch (EntityNotFoundException ex)
@@ -39,7 +39,7 @@ public abstract class CqrsController(ICqrsBus cqrsBus) : ControllerBase
     {
         try
         {
-            var result = await cqrsBus.ExecuteAsync(query).ConfigureAwait(false);
+            var result = await cqrsBus.ExecuteAsync(query, HttpContext.RequestAborted).ConfigureAwait(false);
             return StatusCode(statusCode, result);
         }
         catch (EntityNotFoundException ex)

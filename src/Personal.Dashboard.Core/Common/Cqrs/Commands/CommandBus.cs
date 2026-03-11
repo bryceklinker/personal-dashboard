@@ -13,19 +13,19 @@ public interface ICommandHandler<in TCommand, TResult> : IRequestHandler<TComman
 
 public interface ICommandBus
 {
-    Task ExecuteAsync(ICommand command);
+    Task ExecuteAsync(ICommand command, CancellationToken cancellationToken = default);
 
-    Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command);
+    Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default);
 }
 
 public class CommandBus(IMediator mediator) : ICommandBus
 {
-    public async Task ExecuteAsync(ICommand command)
+    public async Task ExecuteAsync(ICommand command, CancellationToken cancellationToken = default)
     {
-        await mediator.Send(command).ConfigureAwait(false);
+        await mediator.Send(command, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command)
+    public Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }
