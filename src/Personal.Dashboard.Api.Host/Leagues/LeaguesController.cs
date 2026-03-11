@@ -21,4 +21,16 @@ public class LeaguesController(ICqrsBus cqrsBus) : CqrsController(cqrsBus)
     {
         return await ExecuteAsync(new RefreshLeaguesCommand());
     }
+
+    [HttpPost("{id:guid}/favorite")]
+    public async Task<IActionResult> FavoriteLeague(Guid id)
+    {
+        return await ExecuteAsync(new FavoriteLeagueCommand(id), statusCode: 204);
+    }
+
+    [HttpPost("{id:guid}/unfavorite")]
+    public async Task<IActionResult> UnfavoriteLeague(Guid id)
+    {
+        return await ExecuteAsync(new UnfavoriteLeagueCommand(id), statusCode: 204);
+    }
 }
