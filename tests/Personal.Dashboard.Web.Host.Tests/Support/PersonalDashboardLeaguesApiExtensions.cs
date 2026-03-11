@@ -25,7 +25,7 @@ public static class PersonalDashboardLeaguesApiExtensions
     {
         await handler.SetupResponseAsync(
             new HttpRequestMessage(HttpMethod.Post, "http://api/leagues/refresh"),
-            new HttpResponseMessage(System.Net.HttpStatusCode.OK),
+            new HttpResponseMessage(System.Net.HttpStatusCode.NoContent),
             options
         );
     }
