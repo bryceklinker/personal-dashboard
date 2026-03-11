@@ -23,6 +23,26 @@ public class LeaguesListTests
     }
     
     [Fact]
+    public async Task WhenOnLastPageThenDisablesNext()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        await context.HttpHandler.SetupLeagues(
+            total: 20,
+            limit: 10,
+            offset: 10,
+            leagues: DataFactory.Many(DataFactory.FootballLeagueModel, 10)
+        );
+
+        var page = context.Render<LeaguesList>();
+        await Eventually.Assert(() =>
+            Assert.False(page.FindByRole("button", new FindByRoleOptions(Label: "next")).IsDisabled()));
+        await page.FindByRole("button", new FindByRoleOptions(Label: "next")).ClickAsync();
+
+        await Eventually.Assert(() =>
+            Assert.True(page.FindByRole("button", new FindByRoleOptions(Label: "next")).IsDisabled()));
+    }
+
+    [Fact]
     public async Task WhenGoingToNextPageThenGetsNextPageOfLeagues()
     {
         await using var context = new PersonalDashboardWebContext();

@@ -57,7 +57,7 @@
     private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } =
         PagedListResultModel<FootballLeagueModel>.Empty();
 
-    private bool HasNextPage => Leagues.Total > Leagues.Limit;
+    private bool HasNextPage => Leagues.Total > _currentParameters.Offset + Leagues.Limit;
     private IDisposable? _subscription;
     private PagedListParameters _currentParameters = PagedListParameters.Default();
 
