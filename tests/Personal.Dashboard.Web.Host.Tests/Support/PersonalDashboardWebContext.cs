@@ -1,16 +1,19 @@
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using MudBlazor;
 using Personal.Dashboard.Test.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
+using Personal.Dashboard.Web.Host.Common.Apis;
 using Personal.Dashboard.Web.Host.Common.SignalR;
 
 namespace Personal.Dashboard.Web.Host.Tests.Support;
 
 public class PersonalDashboardWebContext : BunitContext
 {
-    public FakeHttpMessageHandler HttpHandler => Services.GetRequiredService<FakeHttpMessageHandler>();
-    public FakeHubConnectionFactory HubFactory => Services.GetRequiredService<FakeHubConnectionFactory>();
+    public FakeHttpMessageHandler HttpHandler { get; } = new FakeHttpMessageHandler();
+    public FakeHubConnectionFactory HubFactory { get; } = new FakeHubConnectionFactory();
+    public FakeSnackbarService Snackbar { get; } = new FakeSnackbarService();
 
     public PersonalDashboardWebContext()
     {
@@ -22,10 +25,17 @@ public class PersonalDashboardWebContext : BunitContext
         Services.AddPersonalDashboardWeb();
         Services.AddPersonalDashboardTestingServices();
 
-        var fakeFactory = new FakeHubConnectionFactory();
         Services.RemoveAll(typeof(IHubConnectionFactory));
-        Services.AddSingleton<IHubConnectionFactory>(fakeFactory);
-        Services.AddSingleton(fakeFactory);
+        Services.AddSingleton<IHubConnectionFactory>(HubFactory);
+        Services.AddSingleton(HubFactory);
+
+        Services.AddSingleton(Snackbar);
+        Services.Replace(ServiceDescriptor.Singleton<ISnackbar>(Snackbar));
+
+        var httpClient = new HttpClient(HttpHandler) { BaseAddress = new Uri("https://localhost:3000") };
+        Services.RemoveAll(typeof(PersonalDashboardApiClient));
+        Services.AddSingleton(sp =>
+            new PersonalDashboardApiClient(httpClient, sp.GetRequiredService<IHubConnectionFactory>()));
     }
 
     private static Stream CreateServiceDiscoveryConfigStream()

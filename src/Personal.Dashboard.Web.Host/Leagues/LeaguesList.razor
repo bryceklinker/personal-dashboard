@@ -1,7 +1,9 @@
 @using Personal.Dashboard.Models
 @using Personal.Dashboard.Web.Host.Common.Apis
+@using MudBlazor
 
 @inject PersonalDashboardApiClient Client
+@inject ISnackbar Snackbar
 @implements IAsyncDisposable
 
 <MudGrid>
@@ -20,11 +22,19 @@
                 @foreach (var league in Leagues.Items)
                 {
                     <MudListItem>
-                        <MudText Typo="Typo.body1">@league.Name</MudText>
-                        @if (league.LastRefreshed.HasValue)
-                        {
-                            <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
-                        }
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudStack>
+                                <MudText Typo="Typo.body1">@league.Name</MudText>
+                                @if (league.LastRefreshed.HasValue)
+                                {
+                                    <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
+                                }
+                            </MudStack>
+                            <MudIconButton Icon="@(league.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                           OnClick="@(() => OnToggleFavoriteAsync(league))"
+                                           role="button"
+                                           aria-label="@(league.IsFavorite ? "unfavorite" : "favorite")" />
+                        </MudStack>
                     </MudListItem>
                 }
             </MudList>
@@ -69,6 +79,23 @@
     private async Task OnRefreshClicked()
     {
         await Client.RefreshLeaguesAsync();
+    }
+
+    private async Task OnToggleFavoriteAsync(FootballLeagueModel league)
+    {
+        try
+        {
+            if (league.IsFavorite)
+                await Client.UnfavoriteLeagueAsync(league.Id);
+            else
+                await Client.FavoriteLeagueAsync(league.Id);
+            await LoadLeaguesAsync();
+            StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to update favorite status", Severity.Error);
+        }
     }
 
     private async Task GoToNext()

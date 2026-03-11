@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using MudBlazor;
 using Personal.Dashboard.Models;
 using Personal.Dashboard.Test.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
@@ -99,8 +100,8 @@ public class LeaguesListTests
         await context.HubFactory.Connection.SimulateEventAsync(new LeaguesRefreshedDashboardEvent());
 
         await Eventually.Assert(() =>
-            Assert.Contains(page.FindAll(".mud-list-item"),
-                item => item.TextContent.Contains(refreshedLeague.Name)));
+            Assert.Contains(page.FindComponents<MudListItem<FootballLeagueModel>>(),
+                item => item.Markup.Contains(refreshedLeague.Name)));
     }
 
     [Fact]
@@ -115,5 +116,64 @@ public class LeaguesListTests
 
         await Eventually.Assert(() =>
             Assert.Contains(lastRefreshed.ToString("g"), page.Markup));
+    }
+
+    [Fact]
+    public async Task WhenFavoriteToggledThenCallsFavoriteEndpoint()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel() with { IsFavorite = false };
+        HttpRequestMessage? favoriteRequest = null;
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+        await context.HttpHandler.SetupFavoriteLeague(
+            league.Id,
+            new ConfigureResponseOptions(Capture: req => favoriteRequest = req)
+        );
+
+        var page = context.Render<LeaguesList>();
+        await Eventually.Assert(() =>
+            page.FindByRole("button", new FindByRoleOptions(Label: "favorite")));
+        await page.FindByRole("button", new FindByRoleOptions(Label: "favorite")).ClickAsync();
+
+        await Eventually.Assert(() => Assert.NotNull(favoriteRequest));
+    }
+
+    [Fact]
+    public async Task WhenFavoriteToggledThenReloadsLeagues()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel() with { IsFavorite = false };
+        var reloadedLeague = league with { Name = league.Name + " reloaded", IsFavorite = true };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+        await context.HttpHandler.SetupFavoriteLeague(league.Id);
+
+        var page = context.Render<LeaguesList>();
+        await Eventually.Assert(() =>
+            page.FindByRole("button", new FindByRoleOptions(Label: "favorite")));
+        await context.HttpHandler.SetupLeagues(leagues: [reloadedLeague]);
+        await page.FindByRole("button", new FindByRoleOptions(Label: "favorite")).ClickAsync();
+
+        await Eventually.Assert(() => Assert.Contains(reloadedLeague.Name, page.Markup));
+    }
+
+    [Fact]
+    public async Task WhenFavoriteFailsThenShowsSnackbarError()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel() with { IsFavorite = false };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+        await context.HttpHandler.SetupFavoriteLeague(
+            league.Id,
+            new ConfigureResponseOptions(Status: System.Net.HttpStatusCode.InternalServerError)
+        );
+
+        var page = context.Render<LeaguesList>();
+        await Eventually.Assert(() =>
+            page.FindByRole("button", new FindByRoleOptions(Label: "favorite")));
+        await page.FindByRole("button", new FindByRoleOptions(Label: "favorite")).ClickAsync();
+
+        await Eventually.Assert(() =>
+            Assert.Contains(context.Snackbar.AddedMessages,
+                m => m.Severity == Severity.Error));
     }
 }
