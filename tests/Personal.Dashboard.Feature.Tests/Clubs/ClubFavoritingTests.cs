@@ -10,16 +10,18 @@ public class ClubFavoritingTests(ApplicationFixture app, PlaywrightFixture playw
         var page = await playwright.NewPageAsync();
         await playwright.GoToPageAsync(page, "/leagues");
 
-        await page.Locator("button[aria-label='favorite']").First.WaitForAsync();
-        await page.Locator("button[aria-label='favorite']").First.ClickAsync();
+        var leagueFavoriteButton = page.GetByRole(AriaRole.Button, new() { Name = "favorite" }).First;
+        await leagueFavoriteButton.WaitForAsync();
+        await leagueFavoriteButton.ClickAsync();
 
-        await Expect(page.Locator("button[aria-label='unfavorite']").First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
 
         await playwright.GoToPageAsync(page, "/clubs");
 
-        await page.Locator("button[aria-label='favorite']").First.WaitForAsync();
-        await page.Locator("button[aria-label='favorite']").First.ClickAsync();
+        var clubFavoriteButton = page.GetByRole(AriaRole.Button, new() { Name = "favorite" }).First;
+        await clubFavoriteButton.WaitForAsync();
+        await clubFavoriteButton.ClickAsync();
 
-        await Expect(page.Locator("button[aria-label='unfavorite']").First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
     }
 }

@@ -35,4 +35,8 @@ jobs:
         run: pwsh tests/Personal.Dashboard.Feature.Tests/bin/Release/net10.0/playwright.ps1 install chromium
 
       - name: Run Feature Tests
+        env:
+          FootballApi__BaseUrl: ${{ secrets.FOOTBALL_API_BASE_URL }}
+          FootballApi__ApiKey: ${{ secrets.FOOTBALL_API_KEY }}
         run: dotnet test tests/Personal.Dashboard.Feature.Tests --configuration Release --no-build --no-restore --filter "Category=Feature"
+

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Personal.Dashboard.Api.Host.Common.SignalR;
 using Personal.Dashboard.Api.Host.Leagues;
 using Personal.Dashboard.Core;
+using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Api.Host;
 
@@ -31,6 +32,11 @@ public static class PersonalDashboardApiServiceCollectionExtensions
             opts.ConfigureDbContext = ctx =>
             {
                 if (configuration.HasDbConnectionString()) ctx.UseNpgsql(connectionString);
+            };
+            opts.ConfigureFootballApi = api =>
+            {
+                api.BaseUrl = configuration["FootballApi:BaseUrl"] ?? "";
+                api.ApiKey = configuration["FootballApi:ApiKey"] ?? "";
             };
         });
         return services;

@@ -10,7 +10,7 @@ public class LeagueFavoritingTests(ApplicationFixture app, PlaywrightFixture pla
         var page = await playwright.NewPageAsync();
         await FavoriteFirstUnfavoritedLeagueAsync(page);
 
-        await Expect(page.Locator("button[aria-label='unfavorite']").First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
     }
 
     [Fact]
@@ -28,9 +28,10 @@ public class LeagueFavoritingTests(ApplicationFixture app, PlaywrightFixture pla
     {
         await playwright.GoToPageAsync(page, "/leagues");
 
-        await page.Locator("button[aria-label='favorite']").First.WaitForAsync();
-        await page.Locator("button[aria-label='favorite']").First.ClickAsync();
+        var favoriteButton = page.GetByRole(AriaRole.Button, new() { Name = "favorite" }).First;
+        await favoriteButton.WaitForAsync();
+        await favoriteButton.ClickAsync();
 
-        await Expect(page.Locator("button[aria-label='unfavorite']").First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
     }
 }
