@@ -29,10 +29,10 @@ jobs:
         run: docker pull postgres:18-alpine
 
       - name: Run Tests
-        run: dotnet test --configuration Release --no-build --no-restore --filter "FullyQualifiedName!~Personal.Dashboard.Feature.Tests"
+        run: dotnet test --configuration Release --no-build --no-restore --filter "Category!=Feature"
 
       - name: Install Playwright Browsers
         run: pwsh tests/Personal.Dashboard.Feature.Tests/bin/Release/net10.0/playwright.ps1 install chromium
 
       - name: Run Feature Tests
-        run: dotnet test tests/Personal.Dashboard.Feature.Tests --configuration Release --no-build --no-restore
+        run: dotnet test tests/Personal.Dashboard.Feature.Tests --configuration Release --no-build --no-restore --filter "Category=Feature"
