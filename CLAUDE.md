@@ -80,3 +80,8 @@ Shared test helpers (`Personal.Dashboard.Test.Support`):
 - `Eventually` — polls an assertion up to 5 s with 200 ms delay for async UI assertions
 
 Test naming convention: `WhenX ThenY` (e.g. `WhenNoLeaguesExistThenReturnsEmptyResult`)
+
+## Code Conventions
+
+- **Never use `!.` (null-forgiving operator).** In production code, use `?? throw new EntityNotFoundException(...)` or similar to make the null case explicit. In tests, use `?.` so assertions fail naturally on null.
+- **Never rely on `*/bin/` artifacts.** Always build from source. Do not reference or stage files under `bin/` or `obj/` directories.
