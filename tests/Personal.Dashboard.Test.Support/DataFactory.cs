@@ -11,7 +11,18 @@ public static class DataFactory
         return new FootballLeagueModel(
             Faker.Random.Guid(),
             Faker.Company.CompanyName(),
-            Faker.Date.RecentOffset()
+            Faker.Date.RecentOffset(),
+            Faker.Random.Bool()
+        );
+    }
+
+    public static FootballClubModel FootballClubModel()
+    {
+        return new FootballClubModel(
+            Faker.Random.Guid(),
+            Faker.Company.CompanyName(),
+            Faker.Date.RecentOffset(),
+            Faker.Random.Bool()
         );
     }
 
