@@ -28,6 +28,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Personal.Dashboard.Api.Host.Tests/Personal.Dashboard.Api.Host.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Core.Tests/Personal.Dashboard.Core.Tests.csproj" />
+    <Project Path="tests/Personal.Dashboard.Feature.Tests/Personal.Dashboard.Feature.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Host.Tests/Personal.Dashboard.Host.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Test.Support/Personal.Dashboard.Test.Support.csproj" />
     <Project Path="tests/Personal.Dashboard.Web.Host.Tests/Personal.Dashboard.Web.Host.Tests.csproj" />
