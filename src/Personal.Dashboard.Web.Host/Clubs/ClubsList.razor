@@ -1,0 +1,128 @@
+@using Personal.Dashboard.Models
+@using Personal.Dashboard.Web.Host.Common.Apis
+@using MudBlazor
+
+@inject PersonalDashboardApiClient Client
+@inject ISnackbar Snackbar
+@implements IAsyncDisposable
+
+<MudGrid>
+    <MudItem xs="12">
+        <MudStack Row="true" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">Clubs</MudText>
+            <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
+                           OnClick="@OnRefreshClicked"
+                           role="button"
+                           aria-label="refresh" />
+        </MudStack>
+    </MudItem>
+    <MudItem xs="12">
+        <MudPaper Class="d-flex flex-1">
+            <MudList Class="d-flex flex-1" T="FootballClubModel">
+                @if (!Clubs.Items.Any())
+                {
+                    <MudListItem>
+                        <MudText Typo="Typo.body1">Clubs appear after favoriting a league</MudText>
+                    </MudListItem>
+                }
+                @foreach (var club in Clubs.Items)
+                {
+                    <MudListItem>
+                        <MudStack Row="true" AlignItems="AlignItems.Center">
+                            <MudStack>
+                                <MudText Typo="Typo.body1">@club.Name</MudText>
+                                @if (club.LastRefreshed.HasValue)
+                                {
+                                    <MudText Typo="Typo.caption">@club.LastRefreshed.Value.ToString("g")</MudText>
+                                }
+                            </MudStack>
+                            <MudIconButton Icon="@(club.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                           OnClick="@(() => OnToggleFavoriteAsync(club))"
+                                           role="button"
+                                           aria-label="@(club.IsFavorite ? "unfavorite" : "favorite")" />
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+            <MudStack>
+                <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
+                               OnClick="@GoToPrevious"
+                               role="button"
+                               aria-label="previous" />
+                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
+                               OnClick="@GoToNext"
+                               Disabled="@(!HasNextPage)"
+                               role="button"
+                               aria-label="next" />
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private PagedListResultModel<FootballClubModel> Clubs { get; set; } =
+        PagedListResultModel<FootballClubModel>.Empty();
+
+    private bool HasNextPage => Clubs.Total > Clubs.Limit;
+    private IDisposable? _subscription;
+    private PagedListParameters _currentParameters = PagedListParameters.Default();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _subscription = Client.Subscribe<ClubsRefreshedDashboardEvent>(async () =>
+        {
+            await LoadClubsAsync();
+            StateHasChanged();
+        });
+        await LoadClubsAsync();
+    }
+
+    private async Task LoadClubsAsync()
+    {
+        Clubs = await Client.GetClubsAsync(_currentParameters);
+    }
+
+    private async Task OnRefreshClicked()
+    {
+        await Client.RefreshClubsAsync();
+    }
+
+    private async Task OnToggleFavoriteAsync(FootballClubModel club)
+    {
+        try
+        {
+            if (club.IsFavorite)
+                await Client.UnfavoriteClubAsync(club.Id);
+            else
+                await Client.FavoriteClubAsync(club.Id);
+            await LoadClubsAsync();
+            StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to update favorite status", Severity.Error);
+        }
+    }
+
+    private async Task GoToNext()
+    {
+        _currentParameters = new PagedListParameters(
+            offset: _currentParameters.Offset + _currentParameters.Limit);
+        await LoadClubsAsync();
+        StateHasChanged();
+    }
+
+    private async Task GoToPrevious()
+    {
+        _currentParameters = new PagedListParameters(
+            offset: Math.Max(0, _currentParameters.Offset - _currentParameters.Limit));
+        await LoadClubsAsync();
+        StateHasChanged();
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _subscription?.Dispose();
+        return ValueTask.CompletedTask;
+    }
+}
