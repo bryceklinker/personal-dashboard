@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Personal.Dashboard.Core.Clubs.Commands;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs;
@@ -43,6 +44,7 @@ public class RefreshLeaguesCommandHandler(
         }
 
         await context.SaveChangesAsync(cancellationToken);
+        await bus.ExecuteAsync(new RefreshClubsCommand(), cancellationToken);
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
     }
 }

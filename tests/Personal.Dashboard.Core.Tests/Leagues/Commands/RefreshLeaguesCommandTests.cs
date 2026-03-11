@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Personal.Dashboard.Core.Clubs.Commands;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Storage;
 using Personal.Dashboard.Core.Leagues.Commands;
@@ -71,5 +72,16 @@ public class RefreshLeaguesCommandTests
         await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
 
         Assert.Single(_cqrsBus.GetCapturedEvents<LeaguesRefreshedEvent>());
+    }
+
+    [Fact]
+    public async Task WhenRefreshCompletedThenDispatchesRefreshClubsCommand()
+    {
+        await _handler.SetupGetLeagues(BaseUrl, [FootballApiDataFactory.League()]);
+
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+
+        var dispatched = _cqrsBus.GetCapturedCommands<RefreshClubsCommand>();
+        Assert.Single(dispatched, c => c.LeagueId == null);
     }
 }
