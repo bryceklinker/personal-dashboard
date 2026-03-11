@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Personal.Dashboard.Core.Clubs.Entities;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core.Leagues.Entities;
@@ -12,6 +13,7 @@ public class FootballLeagueEntity
     public bool IsFavorite { get; set; }
 
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
+    public ICollection<FootballClubEntity> Clubs { get; set; } = new List<FootballClubEntity>();
 
     public void AddAlias(string source, string alias)
     {
