@@ -27,7 +27,7 @@ public abstract class CqrsController(ICqrsBus cqrsBus) : ControllerBase
         try
         {
             await cqrsBus.ExecuteAsync(command, HttpContext.RequestAborted).ConfigureAwait(false);
-            return StatusCode(statusCode, command);
+            return StatusCode(statusCode);
         }
         catch (EntityNotFoundException ex)
         {
