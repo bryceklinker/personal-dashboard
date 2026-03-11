@@ -40,3 +40,11 @@ jobs:
           FootballApi__ApiKey: ${{ secrets.FOOTBALL_API_KEY }}
         run: dotnet test tests/Personal.Dashboard.Feature.Tests --configuration Release --no-build --no-restore --filter "Category=Feature"
 
+      - name: Upload Playwright Videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos
+          path: playwright-videos/
+          if-no-files-found: ignore
+
