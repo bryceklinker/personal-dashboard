@@ -5,6 +5,7 @@
     <Using Include="Aspire.Hosting" />
     <Using Include="Aspire.Hosting.Testing" />
     <Using Include="Microsoft.Playwright" />
+    <Using Include="Microsoft.Playwright.Assertions" Static="true" />
   </ItemGroup>
 
   <ItemGroup>
