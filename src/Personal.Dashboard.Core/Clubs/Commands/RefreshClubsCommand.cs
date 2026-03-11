@@ -49,7 +49,7 @@ public class RefreshClubsCommandHandler(
         var response = await footballApiClient.GetTeamsAsync(
             new FootballApiTeamsParameters(League: long.Parse(faAlias.Alias), Season: DateTimeOffset.UtcNow.Year));
 
-        await ProcessTeams(response.Response, league, existingAliases, cancellationToken);
+        ProcessTeams(response.Response, league, existingAliases, cancellationToken);
 
         await db.SaveChangesAsync(cancellationToken);
         await bus.PublishAsync(new ClubsRefreshedEvent(), cancellationToken);
@@ -89,14 +89,14 @@ public class RefreshClubsCommandHandler(
             var response = await footballApiClient.GetTeamsAsync(
                 new FootballApiTeamsParameters(League: long.Parse(leagueFaAlias.Alias), Season: DateTimeOffset.UtcNow.Year));
 
-            await ProcessTeams(response.Response, league, aliasDict, cancellationToken);
+            ProcessTeams(response.Response, league, aliasDict, cancellationToken);
         }
 
         await db.SaveChangesAsync(cancellationToken);
         await bus.PublishAsync(new ClubsRefreshedEvent(), cancellationToken);
     }
 
-    private async Task ProcessTeams(
+    private void ProcessTeams(
         FootballApiTeam[] teams,
         FootballLeagueEntity league,
         Dictionary<string, FootballClubAlias> existingAliases,
@@ -118,7 +118,5 @@ public class RefreshClubsCommandHandler(
                 db.Set<FootballClubEntity>().Add(club);
             }
         }
-
-        await Task.CompletedTask;
     }
 }
