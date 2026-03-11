@@ -26,24 +26,18 @@ public class RefreshLeaguesCommandHandler(
             .Include(a => a.League)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
-        var now = DateTimeOffset.UtcNow;
-
         foreach (var apiLeague in response.Response)
         {
             var aliasKey = $"{apiLeague.League.Id}";
             if (existingAliases.TryGetValue(aliasKey, out var alias))
             {
-                alias.League.Name = apiLeague.League.Name;
-                alias.League.LastRefreshed = now;
+                alias.League.UpdateFromFootballApi(apiLeague);
             }
             else
             {
-                var entity = new FootballLeagueEntity
-                {
-                    Name = apiLeague.League.Name,
-                    LastRefreshed = now
-                };
+                var entity = new FootballLeagueEntity();
                 entity.AddAlias(DataSource.FootballApi, aliasKey);
+                entity.UpdateFromFootballApi(apiLeague);
                 context.Add(entity);
             }
         }

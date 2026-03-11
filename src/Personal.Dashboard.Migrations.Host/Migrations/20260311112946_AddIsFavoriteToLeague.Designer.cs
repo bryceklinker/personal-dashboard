@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Personal.Dashboard.Core.Common.Storage;
@@ -11,9 +12,11 @@ using Personal.Dashboard.Core.Common.Storage;
 namespace Personal.Dashboard.Migrations.Host.Migrations
 {
     [DbContext(typeof(PersonalDashboardContext))]
-    partial class PersonalDashboardContextModelSnapshot : ModelSnapshot
+    [Migration("20260311112946_AddIsFavoriteToLeague")]
+    partial class AddIsFavoriteToLeague
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

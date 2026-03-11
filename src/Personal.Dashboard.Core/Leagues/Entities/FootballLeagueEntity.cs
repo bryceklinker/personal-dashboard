@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core.Leagues.Entities;
 
@@ -8,6 +9,7 @@ public class FootballLeagueEntity
     public Guid Id { get; set; } = Guid.Empty;
     public string Name { get; set; } = "";
     public DateTimeOffset? LastRefreshed { get; set; }
+    public bool IsFavorite { get; set; }
 
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
 
@@ -20,6 +22,15 @@ public class FootballLeagueEntity
             League = this,
         });
     }
+
+    public void Favorite() => IsFavorite = true;
+    public void Unfavorite() => IsFavorite = false;
+
+    public void UpdateFromFootballApi(FootballApiLeague league)
+    {
+        Name = league.League.Name;
+        LastRefreshed = DateTimeOffset.UtcNow;
+    }
 }
 
 public class FootballLeagueEntityConfiguration : IEntityTypeConfiguration<FootballLeagueEntity>
@@ -29,7 +40,7 @@ public class FootballLeagueEntityConfiguration : IEntityTypeConfiguration<Footba
         builder.HasKey(p => p.Id);
         builder.Property(p => p.Id).IsRequired().ValueGeneratedOnAdd();
         builder.Property(p => p.Name).IsRequired();
-        
+
         builder.HasMany(p => p.Aliases)
             .WithOne(a => a.League)
             .HasForeignKey(a => a.LeagueId);
