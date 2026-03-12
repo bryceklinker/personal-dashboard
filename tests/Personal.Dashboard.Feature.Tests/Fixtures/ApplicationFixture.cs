@@ -27,8 +27,13 @@ public class ApplicationFixture : IAsyncLifetime
 
     private async Task RefreshLeaguesAsync()
     {
-        var apiEndpoint = GetEndpoint("api");
-        using var client = new HttpClient();
-        await client.PostAsync($"{apiEndpoint}leagues/refresh", null);
+        var apiEndpoint = GetEndpoint("api").TrimEnd('/');
+        using var handler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+        using var client = new HttpClient(handler);
+        var response = await client.PostAsync($"{apiEndpoint}/leagues/refresh", null);
+        response.EnsureSuccessStatusCode();
     }
 }

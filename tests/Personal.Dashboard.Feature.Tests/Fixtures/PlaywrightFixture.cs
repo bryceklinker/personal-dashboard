@@ -21,8 +21,6 @@ public class PlaywrightFixture : IAsyncLifetime
         var context = await (_browser ?? throw new InvalidOperationException("Browser not initialized"))
             .NewContextAsync(new BrowserNewContextOptions
             {
-                RecordVideoDir = "playwright-videos",
-                RecordVideoSize = new RecordVideoSize { Width = 1280, Height = 720 },
                 IgnoreHTTPSErrors = true
             });
         _contexts.Add(context);

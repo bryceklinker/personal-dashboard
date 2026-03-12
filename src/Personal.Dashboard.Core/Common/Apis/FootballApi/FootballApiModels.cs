@@ -69,8 +69,8 @@ public record FootballApiSeasonCoverage(
 
 public record FootballApiSeason(
     long Year,
-    DateOnly Start,
-    DateOnly End,
+    DateOnly? Start,
+    DateOnly? End,
     bool Current,
     FootballApiSeasonCoverage Coverage);
 
@@ -115,25 +115,22 @@ public record FootballApiError(
 );
 
 public record FootballApiResponse<
-    TParameters,
     TResponse
 >(
     string Get,
-    TParameters Parameters,
     FootballApiError[] Errors,
     long Results,
     FootballApiPaging Paging,
     TResponse Response
-) where TParameters : class;
+);
 
 public record FootballApiLeaguesResponse(
-    FootballApiLeaguesParameters Parameters,
     FootballApiError[] Errors,
     long Results,
     FootballApiPaging Paging,
     FootballApiLeague[] Response
     )
-    : FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>("leagues", Parameters, Errors, Results, Paging, Response);
+    : FootballApiResponse<FootballApiLeague[]>("leagues", Errors, Results, Paging, Response);
 
 public record FootballApiTeamInfo(long Id, string Name);
 

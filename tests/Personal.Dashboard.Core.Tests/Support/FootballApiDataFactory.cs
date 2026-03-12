@@ -95,15 +95,10 @@ public static class FootballApiDataFactory
         return new FootballApiTeam(TeamInfo());
     }
 
-    public static FootballApiResponse<TParameters, TResponse> SuccessResponse<TParameters, TResponse>(
-        TParameters parameters,
-        TResponse response
-    )
-        where TParameters : class
+    public static FootballApiResponse<TResponse> SuccessResponse<TResponse>(TResponse response)
     {
-        return new FootballApiResponse<TParameters, TResponse>(
+        return new FootballApiResponse<TResponse>(
             Faker.Random.AlphaNumeric(8),
-            parameters,
             [],
             response is IEnumerable enumerable ? enumerable.Cast<object>().Count() : 1,
             Paging(),
@@ -111,16 +106,13 @@ public static class FootballApiDataFactory
         );
     }
 
-    public static FootballApiResponse<TParameters, TResponse> FailureResponse<TParameters, TResponse>(
-        TParameters parameters,
+    public static FootballApiResponse<TResponse> FailureResponse<TResponse>(
         TResponse response,
         FootballApiError[] errors
     )
-        where TParameters : class
     {
-        return new FootballApiResponse<TParameters, TResponse>(
+        return new FootballApiResponse<TResponse>(
             Faker.Random.AlphaNumeric(8),
-            parameters,
             errors,
             response is IEnumerable enumerable ? enumerable.Cast<object>().Count() : 1,
             Paging(),

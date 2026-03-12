@@ -8,7 +8,6 @@ public static class PersonalDashboardApiWebApplicationBuilderExtensions
     {
         builder.AddServiceDefaults();
         
-        
         builder.Services.AddPersonalDashboardApi(builder.Configuration);
         if (builder.Configuration.HasDbConnectionString()) builder.EnrichNpgsqlDbContext<PersonalDashboardContext>();
         return builder;

@@ -1,6 +1,10 @@
 using Personal.Dashboard.Host;
 
-var builder = DistributedApplication.CreateBuilder(args);
+var builder = DistributedApplication.CreateBuilder(new DistributedApplicationOptions
+{
+    Args = args,
+    EnableResourceLogging = true,
+});
 
 var db = builder.AddPostgres("postgres")
     .WithImage("postgres")

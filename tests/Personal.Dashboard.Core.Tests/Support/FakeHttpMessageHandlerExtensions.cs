@@ -9,7 +9,7 @@ public static class FootballApiHttpMessageHandlerExtensions
     {
         await handler.SetupGetJsonResponseAsync(
             $"{baseUrl}/leagues",
-            FootballApiDataFactory.SuccessResponse(FootballApiLeaguesParameters.Empty(), leagues)
+            FootballApiDataFactory.SuccessResponse(leagues)
         );
     }
 
@@ -21,9 +21,7 @@ public static class FootballApiHttpMessageHandlerExtensions
     {
         await handler.SetupGetJsonResponseAsync(
             $"{baseUrl}/teams?league={leagueId}&season={DateTimeOffset.UtcNow.Year}",
-            FootballApiDataFactory.SuccessResponse(
-                new FootballApiTeamsParameters(League: leagueId, Season: DateTimeOffset.UtcNow.Year),
-                teams)
+            FootballApiDataFactory.SuccessResponse(teams)
         );
     }
 }
