@@ -18,6 +18,7 @@ public class GetLeaguesQueryHandler(
         CancellationToken cancellationToken)
     {
         var query = context.Set<FootballLeagueEntity>()
+            .OrderBy(l => l.Name)
             .ProjectTo<FootballLeagueModel>(mapper.ConfigurationProvider);
 
         return await query.ToPagedListAsync(request, cancellationToken).ConfigureAwait(false);

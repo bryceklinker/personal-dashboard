@@ -11,9 +11,9 @@ namespace Personal.Dashboard.Api.Host.Leagues;
 public class LeaguesController(ICqrsBus cqrsBus) : CqrsController(cqrsBus)
 {
     [HttpGet]
-    public async Task<IActionResult> GetLeagues()
+    public async Task<IActionResult> GetLeagues([FromQuery] int offset = 0, [FromQuery] int limit = 10)
     {
-        return await QueryAsync(new GetLeaguesQuery());
+        return await QueryAsync(new GetLeaguesQuery(offset, limit));
     }
 
     [HttpPost("refresh")]

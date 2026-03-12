@@ -18,6 +18,7 @@ public class GetClubsQueryHandler(
         CancellationToken cancellationToken)
     {
         var query = context.Set<FootballClubEntity>()
+            .OrderBy(c => c.Name)
             .ProjectTo<FootballClubModel>(mapper.ConfigurationProvider);
         return await query.ToPagedListAsync(request, cancellationToken).ConfigureAwait(false);
     }

@@ -14,11 +14,17 @@ public static class PersonalDashboardWebServiceCollectionExtensions
             {
                 http.AddServiceDiscovery();
             });
-        services.AddHttpClient<PersonalDashboardApiClient>()
+        services.AddHttpClient("api")
             .ConfigureHttpClient(client =>
             {
                 client.BaseAddress = new Uri("https+http://api");
             });
+        services.AddScoped(sp =>
+        {
+            var factory = sp.GetRequiredService<IHttpClientFactory>();
+            var hubFactory = sp.GetRequiredService<IHubConnectionFactory>();
+            return new PersonalDashboardApiClient(factory.CreateClient("api"), hubFactory);
+        });
         services.AddHttpClient("hub").AddServiceDiscovery();
         services.AddMudServices();
         services.AddSingleton<IHubConnectionFactory, HubConnectionFactory>();
