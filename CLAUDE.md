@@ -84,4 +84,4 @@ Test naming convention: `WhenX ThenY` (e.g. `WhenNoLeaguesExistThenReturnsEmptyR
 ## Code Conventions
 
 - **Never use `!.` (null-forgiving operator).** In production code, use `?? throw new EntityNotFoundException(...)` or similar to make the null case explicit. In tests, use `?.` so assertions fail naturally on null.
-- **Never rely on `*/bin/` artifacts.** Always build from source. Do not reference or stage files under `bin/` or `obj/` directories.
+- **Never rely on `*/bin/` artifacts.** Always build from source. Do not reference or stage files under `bin/` or `obj/` directories. If `bin/` or `obj/` files appear in `git status` or `git diff --cached`, unstage and delete them immediately — they must never be committed.
