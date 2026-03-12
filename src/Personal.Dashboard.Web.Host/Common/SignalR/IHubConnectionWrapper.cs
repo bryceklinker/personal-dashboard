@@ -24,11 +24,16 @@ public class HubConnectionWrapper(HubConnection connection) : IHubConnectionWrap
         => connection.On<DashboardEvent>(methodName, async e => await handler(e));
 }
 
-public class HubConnectionFactory : IHubConnectionFactory
+public class HubConnectionFactory(IHttpMessageHandlerFactory httpMessageHandlerFactory) : IHubConnectionFactory
 {
     public IHubConnectionWrapper Create(Uri url)
     {
-        var connection = new HubConnectionBuilder().WithUrl(url).Build();
+        var connection = new HubConnectionBuilder()
+            .WithUrl(url, options =>
+            {
+                options.HttpMessageHandlerFactory = _ => httpMessageHandlerFactory.CreateHandler("hub");
+            })
+            .Build();
         return new HubConnectionWrapper(connection);
     }
 }

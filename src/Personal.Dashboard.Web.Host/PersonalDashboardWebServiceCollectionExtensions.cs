@@ -19,6 +19,7 @@ public static class PersonalDashboardWebServiceCollectionExtensions
             {
                 client.BaseAddress = new Uri("https+http://api");
             });
+        services.AddHttpClient("hub").AddServiceDiscovery();
         services.AddMudServices();
         services.AddSingleton<IHubConnectionFactory, HubConnectionFactory>();
         return services;
