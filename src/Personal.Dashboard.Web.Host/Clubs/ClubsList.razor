@@ -8,17 +8,21 @@
 
 <MudGrid>
     <MudItem xs="12">
-        <MudStack Row="true" AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h6">Clubs</MudText>
-            <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
-                           OnClick="@OnRefreshClicked"
-                           role="button"
-                           aria-label="refresh" />
-        </MudStack>
+        <MudGrid>
+            <MudItem xs="10">
+                <MudText Typo="Typo.h6">Clubs</MudText>
+            </MudItem>
+            <MudItem xs="2">
+                <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
+                               OnClick="@OnRefreshClicked"
+                               role="button"
+                               aria-label="refresh" />
+            </MudItem>
+        </MudGrid>
     </MudItem>
     <MudItem xs="12">
-        <MudPaper Class="d-flex flex-1">
-            <MudList Class="d-flex flex-1" T="FootballClubModel">
+        <MudPaper>
+            <MudList T="FootballClubModel">
                 @if (!Clubs.Items.Any())
                 {
                     <MudListItem>
@@ -28,33 +32,37 @@
                 @foreach (var club in Clubs.Items)
                 {
                     <MudListItem>
-                        <MudStack Row="true" AlignItems="AlignItems.Center">
-                            <MudStack>
+                        <MudGrid>
+                            <MudItem xs="10">
                                 <MudText Typo="Typo.body1">@club.Name</MudText>
                                 @if (club.LastRefreshed.HasValue)
                                 {
                                     <MudText Typo="Typo.caption">@club.LastRefreshed.Value.ToString("g")</MudText>
                                 }
-                            </MudStack>
-                            <MudIconButton Icon="@(club.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
-                                           OnClick="@(() => OnToggleFavoriteAsync(club))"
-                                           role="button"
-                                           aria-label="@(club.IsFavorite ? "unfavorite" : "favorite")" />
-                        </MudStack>
+                            </MudItem>
+                            <MudItem xs="2">
+                                <MudIconButton Icon="@(club.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                               OnClick="@(() => OnToggleFavoriteAsync(club))"
+                                               role="button"
+                                               aria-label="@(club.IsFavorite ? "unfavorite" : "favorite")" />
+                            </MudItem>
+                        </MudGrid>
                     </MudListItem>
                 }
             </MudList>
-            <MudStack>
-                <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
-                               OnClick="@GoToPrevious"
-                               role="button"
-                               aria-label="previous" />
-                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
-                               OnClick="@GoToNext"
-                               Disabled="@(!HasNextPage)"
-                               role="button"
-                               aria-label="next" />
-            </MudStack>
+            <MudGrid Justify="Justify.Center">
+                <MudItem>
+                    <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
+                                   OnClick="@GoToPrevious"
+                                   role="button"
+                                   aria-label="previous" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
+                                   OnClick="@GoToNext"
+                                   Disabled="@(!HasNextPage)"
+                                   role="button"
+                                   aria-label="next" />
+                </MudItem>
+            </MudGrid>
         </MudPaper>
     </MudItem>
 </MudGrid>
