@@ -9,6 +9,7 @@ public class FootballLeagueEntity
 {
     public Guid Id { get; set; } = Guid.Empty;
     public string Name { get; set; } = "";
+    public int? CurrentSeasonYear { get; set; }
     public DateTimeOffset? LastRefreshed { get; set; }
     public bool IsFavorite { get; set; }
 
@@ -32,6 +33,8 @@ public class FootballLeagueEntity
     {
         Name = league.League.Name;
         LastRefreshed = DateTimeOffset.UtcNow;
+        var currentSeason = league.Seasons.FirstOrDefault(s => s.Current);
+        CurrentSeasonYear = currentSeason?.Start?.Year;
     }
 }
 
