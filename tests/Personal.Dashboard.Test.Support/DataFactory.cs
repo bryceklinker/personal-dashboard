@@ -12,7 +12,8 @@ public static class DataFactory
             Faker.Random.Guid(),
             Faker.Company.CompanyName(),
             Faker.Date.RecentOffset(),
-            Faker.Random.Bool()
+            Faker.Random.Bool(),
+            [new FootballLeagueSeasonModel(Faker.Random.Int(2020, 2025), true)]
         );
     }
 
@@ -22,7 +23,8 @@ public static class DataFactory
             Faker.Random.Guid(),
             Faker.Company.CompanyName(),
             Faker.Date.RecentOffset(),
-            Faker.Random.Bool()
+            Faker.Random.Bool(),
+            [new FootballClubLeagueModel(Faker.Random.Guid(), Faker.Company.CompanyName())]
         );
     }
 
