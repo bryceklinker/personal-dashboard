@@ -33,8 +33,9 @@ public class FootballLeagueEntity
     {
         Name = league.League.Name;
         LastRefreshed = DateTimeOffset.UtcNow;
-        var currentSeason = league.Seasons.FirstOrDefault(s => s.Current);
-        CurrentSeasonYear = currentSeason?.Start?.Year;
+        var currentSeason = league.Seasons.FirstOrDefault(s => s.Current)
+            ?? league.Seasons.MaxBy(s => s.Year);
+        CurrentSeasonYear = (int?)currentSeason?.Year;
     }
 }
 

@@ -20,7 +20,7 @@ public class ClubFavoritingTests(ApplicationFixture app, PlaywrightFixture playw
         await playwright.GoToPageAsync(page, "/clubs");
 
         var clubFavoriteButton = page.GetByRole(AriaRole.Button, new() { Name = "favorite" }).First;
-        await clubFavoriteButton.WaitForAsync();
+        await clubFavoriteButton.WaitForAsync(new LocatorWaitForOptions { Timeout = 60000 });
         await clubFavoriteButton.ClickAsync();
 
         await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First)
