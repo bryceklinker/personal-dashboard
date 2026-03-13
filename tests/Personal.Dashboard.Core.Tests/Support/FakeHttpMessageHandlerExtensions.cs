@@ -17,10 +17,11 @@ public static class FootballApiHttpMessageHandlerExtensions
         this FakeHttpMessageHandler handler,
         string baseUrl,
         long leagueId,
+        int seasonYear,
         FootballApiTeam[] teams)
     {
         await handler.SetupGetJsonResponseAsync(
-            $"{baseUrl}/teams?league={leagueId}&season={DateTimeOffset.UtcNow.Year}",
+            $"{baseUrl}/teams?league={leagueId}&season={seasonYear}",
             FootballApiDataFactory.SuccessResponse(teams)
         );
     }

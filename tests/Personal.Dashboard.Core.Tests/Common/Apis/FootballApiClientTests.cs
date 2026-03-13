@@ -76,7 +76,7 @@ public class FootballApiClientTests
     {
         var response = FootballApiDataFactory.FailureResponse<FootballApiLeague[]>(
             [],
-            [FootballApiDataFactory.Error()]
+            new Dictionary<string, object> { { "message", "error" } }
         );
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 
@@ -89,7 +89,7 @@ public class FootballApiClientTests
     {
         var response = FootballApiDataFactory.FailureResponse<FootballApiLeague[]>(
             [],
-            [FootballApiDataFactory.Error()]
+            new Dictionary<string, object> { { "message", "error" } }
         );
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 

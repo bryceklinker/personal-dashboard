@@ -64,14 +64,14 @@ public static class FootballApiDataFactory
         );
     }
 
-    public static FootballApiSeason Season()
+    public static FootballApiSeason Season(bool current = true)
     {
         var start = Faker.Date.PastDateOnly();
         return new FootballApiSeason(
             Faker.Date.RecentDateOnly().Year,
             start,
             start.AddMonths(9),
-            true,
+            current,
             SeasonCoverage()
         );
     }
@@ -108,7 +108,7 @@ public static class FootballApiDataFactory
 
     public static FootballApiResponse<TResponse> FailureResponse<TResponse>(
         TResponse response,
-        FootballApiError[] errors
+        Dictionary<string, object> errors
     )
     {
         return new FootballApiResponse<TResponse>(
