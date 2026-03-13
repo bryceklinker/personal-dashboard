@@ -57,4 +57,35 @@ public class ClubsControllerTests(PersonalDashboardApiApplication app) : IClassF
         var response = await _client.PostAsync($"/clubs/{Guid.NewGuid()}/favorite", null);
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task WhenGetClubsCalledThenReturnsLeaguesInModel()
+    {
+        var (league, club) = PersonalDashboardEntityFactory.FootballClubInLeague("999", "888");
+        await app.AddToDbAsync(club);
+
+        var response = await _client.GetAsync("/clubs");
+        var result = await response.Content.ReadFromJsonAsync<PagedListResultModel<FootballClubModel>>();
+
+        var clubModel = result?.Items.FirstOrDefault(c => c.Id == club.Id);
+        Assert.NotNull(clubModel);
+        Assert.Single(clubModel.Leagues, l => l.Id == league.Id);
+    }
+
+    [Fact]
+    public async Task WhenGetClubsCalledThenReturnsFavoritesFirst()
+    {
+        var favorite = PersonalDashboardEntityFactory.FootballClub(c => c.Favorite());
+        var unfavorite = PersonalDashboardEntityFactory.FootballClub();
+        await app.AddToDbAsync(favorite);
+        await app.AddToDbAsync(unfavorite);
+
+        var response = await _client.GetAsync("/clubs?limit=100");
+        var result = await response.Content.ReadFromJsonAsync<PagedListResultModel<FootballClubModel>>();
+
+        Assert.NotNull(result);
+        var favoriteIndex = Array.FindIndex(result.Items, c => c.Id == favorite.Id);
+        var unfavoriteIndex = Array.FindIndex(result.Items, c => c.Id == unfavorite.Id);
+        Assert.True(favoriteIndex < unfavoriteIndex);
+    }
 }
