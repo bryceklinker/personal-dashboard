@@ -34,4 +34,16 @@ public class FootballLeagueEntityTests
         Assert.Equal(apiLeague.League.Name, league.Name);
         Assert.NotNull(league.LastRefreshed);
     }
+
+    [Fact]
+    public void WhenUpdateFromFootballApiCalledThenDoesNotSetCurrentSeasonYear()
+    {
+        var entity = PersonalDashboardEntityFactory.FootballLeague();
+        var apiLeague = FootballApiDataFactory.League();
+
+        entity.UpdateFromFootballApi(apiLeague);
+
+        // CurrentSeasonYear no longer exists — this test verifies Seasons is empty until upserted
+        Assert.Empty(entity.Seasons);
+    }
 }

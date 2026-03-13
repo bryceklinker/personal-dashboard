@@ -5,16 +5,35 @@ using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core.Leagues.Entities;
 
+public class FootballLeagueSeason
+{
+    public Guid LeagueId { get; set; }
+    public int Year { get; set; }
+    public bool IsCurrent { get; set; }
+    public required FootballLeagueEntity League { get; set; }
+}
+
+public class FootballLeagueSeasonConfiguration : IEntityTypeConfiguration<FootballLeagueSeason>
+{
+    public void Configure(EntityTypeBuilder<FootballLeagueSeason> builder)
+    {
+        builder.HasKey(s => new { s.LeagueId, s.Year });
+        builder.HasOne(s => s.League)
+            .WithMany(l => l.Seasons)
+            .HasForeignKey(s => s.LeagueId);
+    }
+}
+
 public class FootballLeagueEntity
 {
     public Guid Id { get; set; } = Guid.Empty;
     public string Name { get; set; } = "";
-    public int? CurrentSeasonYear { get; set; }
     public DateTimeOffset? LastRefreshed { get; set; }
     public bool IsFavorite { get; set; }
 
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
     public ICollection<FootballClubEntity> Clubs { get; set; } = new List<FootballClubEntity>();
+    public ICollection<FootballLeagueSeason> Seasons { get; set; } = new List<FootballLeagueSeason>();
 
     public void AddAlias(string source, string alias)
     {
@@ -33,9 +52,6 @@ public class FootballLeagueEntity
     {
         Name = league.League.Name;
         LastRefreshed = DateTimeOffset.UtcNow;
-        var currentSeason = league.Seasons.FirstOrDefault(s => s.Current)
-            ?? league.Seasons.MaxBy(s => s.Year);
-        CurrentSeasonYear = (int?)currentSeason?.Year;
     }
 }
 

@@ -46,7 +46,9 @@ public class RefreshClubsCommandHandler(
             .Include(a => a.Club)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
-        var seasonYear = league.CurrentSeasonYear ?? DateTimeOffset.UtcNow.Year - 1;
+        var seasonYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year
+            ?? league.Seasons.MaxBy(s => s.Year)?.Year
+            ?? DateTimeOffset.UtcNow.Year - 1;
         var response = await footballApiClient.GetTeamsAsync(
             new FootballApiTeamsParameters(League: long.Parse(faAlias.Alias), Season: seasonYear));
 
@@ -87,7 +89,9 @@ public class RefreshClubsCommandHandler(
                 .Where(a => a.Club.Leagues.Any(l => l.Id == league.Id))
                 .ToDictionary(a => a.Alias, a => a);
 
-            var seasonYear = league.CurrentSeasonYear ?? DateTimeOffset.UtcNow.Year - 1;
+            var seasonYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year
+                ?? league.Seasons.MaxBy(s => s.Year)?.Year
+                ?? DateTimeOffset.UtcNow.Year - 1;
             var response = await footballApiClient.GetTeamsAsync(
                 new FootballApiTeamsParameters(League: long.Parse(leagueFaAlias.Alias), Season: seasonYear));
 
