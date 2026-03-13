@@ -25,25 +25,56 @@ public class RefreshLeaguesCommandHandler(
         var existingAliases = await context.Set<FootballLeagueAlias>()
             .Where(a => a.AliasSource == DataSource.FootballApi)
             .Include(a => a.League)
+            .ThenInclude(l => l.Seasons)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
         foreach (var apiLeague in response.Response)
         {
             var aliasKey = $"{apiLeague.League.Id}";
+            FootballLeagueEntity entity;
             if (existingAliases.TryGetValue(aliasKey, out var alias))
             {
                 alias.League.UpdateFromFootballApi(apiLeague);
+                entity = alias.League;
             }
             else
             {
-                var entity = new FootballLeagueEntity();
+                entity = new FootballLeagueEntity();
                 entity.AddAlias(DataSource.FootballApi, aliasKey);
                 entity.UpdateFromFootballApi(apiLeague);
                 context.Add(entity);
             }
+
+            UpsertSeasons(entity, apiLeague.Seasons);
         }
 
         await context.SaveChangesAsync(cancellationToken);
+
+        var favoritedWithCurrentSeason = await context.Set<FootballLeagueEntity>()
+            .Where(l => l.IsFavorite && l.Seasons.Any(s => s.IsCurrent))
+            .Include(l => l.Seasons)
+            .ToListAsync(cancellationToken);
+
+        foreach (var league in favoritedWithCurrentSeason)
+        {
+            var currentSeason = league.Seasons.First(s => s.IsCurrent);
+            await bus.ExecuteAsync(new RefreshClubsCommand(league.Id, currentSeason.Year), cancellationToken);
+        }
+
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
+    }
+
+    private static void UpsertSeasons(FootballLeagueEntity entity, FootballApiSeason[] apiSeasons)
+    {
+        var existingSeasons = entity.Seasons.ToDictionary(s => s.Year);
+        foreach (var apiSeason in apiSeasons)
+        {
+            var year = (int)apiSeason.Year;
+            if (existingSeasons.TryGetValue(year, out var season))
+                season.IsCurrent = apiSeason.Current;
+            else
+                // `required FootballLeagueEntity League` must be set explicitly; EF Core handles the FK via the navigation
+                entity.Seasons.Add(new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity });
+        }
     }
 }
