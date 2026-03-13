@@ -20,7 +20,7 @@ public class FootballLeagueSeason
     public Guid LeagueId { get; set; }
     public int Year { get; set; }
     public bool IsCurrent { get; set; }
-    public FootballLeagueEntity League { get; set; } = null!;
+    public required FootballLeagueEntity League { get; set; }
 }
 
 public class FootballLeagueSeasonConfiguration : IEntityTypeConfiguration<FootballLeagueSeason>
@@ -44,6 +44,8 @@ public class FootballLeagueSeasonConfiguration : IEntityTypeConfiguration<Footba
 ### Migration
 
 Single migration: drops `CurrentSeasonYear` column from `FootballLeagueEntity`, creates `FootballLeagueSeasons` table with composite PK `(LeagueId, Year)`.
+
+`PersonalDashboardContext` already calls `ApplyConfigurationsFromAssembly` so the new `FootballLeagueSeasonConfiguration` is picked up automatically — no manual registration needed.
 
 ### Updated shared models (`src/Personal.Dashboard.Models/FootballModels.cs`)
 
@@ -96,15 +98,16 @@ foreach (var apiSeason in apiLeague.Seasons)
 After `SaveChangesAsync`, dispatch `RefreshClubsCommand` for each favorited league that has a current season:
 
 ```csharp
-var favoritedWithCurrentSeason = context.Set<FootballLeagueEntity>()
-    .Where(l => l.IsFavorite)
+var favoritedWithCurrentSeason = await context.Set<FootballLeagueEntity>()
+    .Where(l => l.IsFavorite && l.Seasons.Any(s => s.IsCurrent))
     .Include(l => l.Seasons)
-    .AsEnumerable()
-    .Select(l => (l, l.Seasons.FirstOrDefault(s => s.IsCurrent)))
-    .Where(t => t.Item2 is not null);
+    .ToListAsync(cancellationToken);
 
-foreach (var (league, season) in favoritedWithCurrentSeason)
-    await bus.ExecuteAsync(new RefreshClubsCommand(league.Id, season!.Year), cancellationToken);
+foreach (var league in favoritedWithCurrentSeason)
+{
+    var currentSeason = league.Seasons.First(s => s.IsCurrent);
+    await bus.ExecuteAsync(new RefreshClubsCommand(league.Id, currentSeason.Year), cancellationToken);
+}
 ```
 
 ### `RefreshClubsCommand` — both params required
@@ -172,33 +175,33 @@ var query = context.Set<FootballClubEntity>()
 
 No new endpoints. Changes to existing behavior:
 
-**`POST /clubs/refresh`** — iterates favorited leagues and dispatches individual commands:
+**`POST /clubs/refresh`** — delegates entirely to a new `RefreshAllFavoritedClubsCommand` to keep the controller thin:
 
 ```csharp
 [HttpPost("refresh")]
 public async Task<IActionResult> RefreshClubs()
 {
-    var leagues = await db.Set<FootballLeagueEntity>()
-        .Where(l => l.IsFavorite)
-        .Include(l => l.Seasons)
-        .ToListAsync();
-
-    foreach (var league in leagues)
-    {
-        var current = league.Seasons.FirstOrDefault(s => s.IsCurrent);
-        if (current is not null)
-            await bus.ExecuteAsync(new RefreshClubsCommand(league.Id, current.Year));
-    }
+    await bus.ExecuteAsync(new RefreshAllFavoritedClubsCommand());
     return NoContent();
 }
 ```
 
-Note: `ClubsController` needs `PersonalDashboardContext` injected for this query, or this logic moves into a new `RefreshAllFavoritedClubsCommand`. Keep it in a dedicated command to follow the CQRS pattern:
+`RefreshAllFavoritedClubsCommand` handler queries favorited leagues that have a current season and dispatches `RefreshClubsCommand` for each:
 
 ```csharp
 public record RefreshAllFavoritedClubsCommand : ICommand;
-// Handler: queries favorited leagues with current seasons,
-// dispatches RefreshClubsCommand for each
+
+// Handler (in src/Personal.Dashboard.Core/Clubs/Commands/RefreshAllFavoritedClubsCommandHandler.cs):
+var leagues = await db.Set<FootballLeagueEntity>()
+    .Where(l => l.IsFavorite && l.Seasons.Any(s => s.IsCurrent))
+    .Include(l => l.Seasons)
+    .ToListAsync(cancellationToken);
+
+foreach (var league in leagues)
+{
+    var current = league.Seasons.First(s => s.IsCurrent);
+    await bus.ExecuteAsync(new RefreshClubsCommand(league.Id, current.Year), cancellationToken);
+}
 ```
 
 **All other endpoints** (`GET /leagues`, `GET /clubs`, favorite/unfavorite) are unchanged in signature — they return richer models automatically via AutoMapper.
@@ -232,12 +235,15 @@ public record RefreshAllFavoritedClubsCommand : ICommand;
 ### `LeagueDetail` (new component, `src/Personal.Dashboard.Web.Host/Leagues/LeagueDetail.razor`)
 
 - `[Parameter] public FootballLeagueModel? League`
+- `[Parameter] public EventCallback OnFavoriteChanged` — invoked after a favorite/unfavorite action so the parent can reload
 - When `League` is null: shows placeholder text "Select a league to view details"
 - When set:
   - League name (heading) + LastRefreshed caption
-  - Favorite toggle button (calls `FavoriteLeagueAsync` / `UnfavoriteLeagueAsync`, reloads via callback)
+  - Favorite toggle button (calls `FavoriteLeagueAsync` / `UnfavoriteLeagueAsync`, then `await OnFavoriteChanged.InvokeAsync()`)
   - "Current Season" card: displays `{Year} – {Year+1}` label, no interactive button
   - Seasons list: all seasons from `League.Seasons` ordered by Year descending, current one marked with a chip/badge
+
+State management in `Leagues.razor`: the `OnFavoriteChanged` callback re-fetches the leagues list (`await LoadLeaguesAsync()`) and updates `_selected` by finding the same league by Id in the new list.
 
 ### `Clubs.razor`
 
@@ -277,21 +283,43 @@ No new methods — existing `FavoriteLeagueAsync`/`UnfavoriteLeagueAsync` and `F
 
 ## Testing
 
+### Test support: `FootballApiDataFactory.Season` overload
+
+The existing `FootballApiDataFactory.Season()` always creates a season with `Current = true`. Add an overload:
+
+```csharp
+public FootballApiSeason Season(bool current = true) => new Faker<FootballApiSeason>()
+    .RuleFor(s => s.Year, f => f.Random.Int(2020, 2025))
+    .RuleFor(s => s.Current, _ => current)
+    .Generate();
+```
+
+This is needed by `RefreshLeaguesCommandTests` to create non-current seasons.
+
 ### Core unit tests
 
-- `RefreshLeaguesCommandTests`: verify seasons are upserted correctly, `IsCurrent` updated
-- `RefreshClubsCommandTests`: verify `(LeagueId, SeasonYear)` both required; API called with correct params
-- `FavoriteLeagueCommandTests`: verify `RefreshClubsCommand` dispatched with current season year; no dispatch when no current season
+- `RefreshLeaguesCommandTests`:
+  - **Delete** any existing test that asserts `LeagueId == null` or passes no league ID — these no longer apply after `RefreshClubsCommand` changes
+  - Add `WhenRefreshLeaguesThenSeasonsAreUpserted`: saves new seasons; updates `IsCurrent` on existing; dispatches `RefreshClubsCommand` for each favorited league with a current season
+  - Add `WhenRefreshLeaguesThenFavoritedLeagueWithNoCurrentSeasonIsSkipped`: no command dispatched when no `IsCurrent` season
+
+- `RefreshClubsCommandTests`:
+  - **Delete** all existing tests that invoke `HandleAllLeagues` or construct `RefreshClubsCommand` with zero arguments — the `HandleAllLeagues` variant is removed
+  - Add `WhenRefreshClubsThenApiCalledWithLeagueAndSeasonYear`: verifies `GetTeamsAsync` receives both `LeagueId` and `SeasonYear`
+
+- `FavoriteLeagueCommandTests`:
+  - **Update** existing dispatch assertion to use `new RefreshClubsCommand(leagueId, currentSeasonYear)` (was previously no-arg or single-arg)
+  - Add `WhenFavoriteLeagueWithNoCurrentSeasonThenClubsNotRefreshed`: no `RefreshClubsCommand` dispatched; warning logged
 
 ### API integration tests
 
 - `LeaguesControllerTests`: `GET /leagues` returns `Seasons[]` on model; favorites sorted first
-- `ClubsControllerTests`: `GET /clubs` returns `Leagues[]` on model; favorites sorted first; `POST /clubs/refresh` dispatches per-league commands
+- `ClubsControllerTests`: `GET /clubs` returns `Leagues[]` on model; favorites sorted first; `POST /clubs/refresh` dispatches `RefreshAllFavoritedClubsCommand`
 
 ### Blazor component tests
 
 - `LeaguesListTests`: clicking a row invokes `OnLeagueSelected` with correct model; current season year displayed
-- `LeagueDetailTests`: shows placeholder when null; renders season list; favorite toggle works
+- `LeagueDetailTests`: shows placeholder when null; renders season list; favorite toggle invokes `OnFavoriteChanged`
 - `ClubsListTests`: clicking a row invokes `OnClubSelected`
 - `ClubDetailTests`: shows placeholder when null; renders leagues list
 
