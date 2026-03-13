@@ -21,10 +21,11 @@ public class FavoriteLeagueCommandHandler(
         var league = await db.Set<FootballLeagueEntity>().FindAsync([request.LeagueId], cancellationToken)
             ?? throw new EntityNotFoundException(typeof(FootballLeagueEntity), request.LeagueId);
         league.Favorite();
+        
         await db.SaveChangesAsync(cancellationToken);
         try
         {
-            await bus.ExecuteAsync(new RefreshClubsCommand(request.LeagueId), cancellationToken);
+            await bus.ExecuteAsync(new RefreshClubsCommand(request.LeagueId, DateTimeOffset.UtcNow.Year), cancellationToken);
         }
         catch (Exception e)
         {

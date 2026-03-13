@@ -16,12 +16,6 @@ public class ClubsController(ICqrsBus cqrsBus) : CqrsController(cqrsBus)
         return await QueryAsync(new GetClubsQuery(offset, limit));
     }
 
-    [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshClubs()
-    {
-        return await ExecuteAsync(new RefreshClubsCommand(), statusCode: 204);
-    }
-
     [HttpPost("{id:guid}/favorite")]
     public async Task<IActionResult> FavoriteClub(Guid id)
     {

@@ -44,7 +44,6 @@ public class RefreshLeaguesCommandHandler(
         }
 
         await context.SaveChangesAsync(cancellationToken);
-        await bus.ExecuteAsync(new RefreshClubsCommand(), cancellationToken);
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
     }
 }

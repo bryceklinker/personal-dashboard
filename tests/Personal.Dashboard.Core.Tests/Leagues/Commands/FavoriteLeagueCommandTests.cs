@@ -37,7 +37,7 @@ public class FavoriteLeagueCommandTests
         _context.Add(league);
         await _context.SaveChangesAsync();
 
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), []);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), DateTimeOffset.UtcNow.Year, []);
 
         await _cqrsBus.ExecuteAsync(new FavoriteLeagueCommand(league.Id));
 
@@ -54,7 +54,7 @@ public class FavoriteLeagueCommandTests
         _context.Add(league);
         await _context.SaveChangesAsync();
 
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), []);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), DateTimeOffset.UtcNow.Year, []);
 
         await _cqrsBus.ExecuteAsync(new FavoriteLeagueCommand(league.Id));
 

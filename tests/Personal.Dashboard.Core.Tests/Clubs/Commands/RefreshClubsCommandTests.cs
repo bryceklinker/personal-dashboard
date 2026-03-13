@@ -7,7 +7,6 @@ using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Exceptions;
 using Personal.Dashboard.Core.Common.Storage;
 using Personal.Dashboard.Core.Tests.Support;
-using Personal.Dashboard.Test.Support;
 using Personal.Dashboard.Test.Support.Common.Http;
 
 namespace Personal.Dashboard.Core.Tests.Clubs.Commands;
@@ -15,6 +14,7 @@ namespace Personal.Dashboard.Core.Tests.Clubs.Commands;
 public class RefreshClubsCommandTests
 {
     private const string BaseUrl = "https://football.api.com";
+    private const int SeasonYear = 2025;
     private readonly FakeHttpMessageHandler _handler;
     private readonly PersonalDashboardContext _context;
     private readonly CapturingCqrsBus _cqrsBus;
@@ -42,9 +42,9 @@ public class RefreshClubsCommandTests
 
         var apiTeam = FootballApiDataFactory.Team();
         var apiTeamWithKnownId = apiTeam with { Team = apiTeam.Team with { Id = long.Parse(clubApiAlias) } };
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), [apiTeamWithKnownId]);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), SeasonYear, [apiTeamWithKnownId]);
 
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(LeagueId: league.Id));
+        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(league.Id, SeasonYear));
 
         var dbClub = await _context.Set<FootballClubEntity>().FirstOrDefaultAsync(c => c.Id == club.Id);
         Assert.NotNull(dbClub?.LastRefreshed);
@@ -60,9 +60,9 @@ public class RefreshClubsCommandTests
         await _context.SaveChangesAsync();
 
         var apiTeam = FootballApiDataFactory.Team();
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), [apiTeam]);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), SeasonYear, [apiTeam]);
 
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(LeagueId: league.Id));
+        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(league.Id, SeasonYear));
 
         var dbClubs = await _context.Set<FootballClubEntity>().ToArrayAsync();
         Assert.Single(dbClubs);
@@ -73,14 +73,12 @@ public class RefreshClubsCommandTests
     [Fact]
     public async Task WhenLeagueDoesNotExistThenThrowsEntityNotFoundException()
     {
-        var nonExistentId = Guid.NewGuid();
-
         await Assert.ThrowsAnyAsync<EntityNotFoundException>(
-            () => _cqrsBus.ExecuteAsync(new RefreshClubsCommand(LeagueId: nonExistentId)));
+            () => _cqrsBus.ExecuteAsync(new RefreshClubsCommand(Guid.NewGuid(), SeasonYear)));
     }
 
     [Fact]
-    public async Task WhenRefreshCompletedWithLeagueIdThenPublishesClubsRefreshedEvent()
+    public async Task WhenRefreshCompletedThenPublishesClubsRefreshedEvent()
     {
         var leagueApiAlias = "102";
         var clubApiAlias = "202";
@@ -91,59 +89,26 @@ public class RefreshClubsCommandTests
 
         var apiTeam = FootballApiDataFactory.Team();
         var apiTeamWithKnownId = apiTeam with { Team = apiTeam.Team with { Id = long.Parse(clubApiAlias) } };
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), [apiTeamWithKnownId]);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), SeasonYear, [apiTeamWithKnownId]);
 
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(LeagueId: league.Id));
+        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(league.Id, SeasonYear));
 
         Assert.Single(_cqrsBus.GetCapturedEvents<ClubsRefreshedEvent>());
     }
 
     [Fact]
-    public async Task WhenNoClubsExistThenIsNoOp()
-    {
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand());
-
-        var dbClubs = await _context.Set<FootballClubEntity>().ToArrayAsync();
-        Assert.Empty(dbClubs);
-    }
-
-    [Fact]
-    public async Task WhenClubsExistThenRefreshesAllClubs()
+    public async Task WhenApiCalledThenUsesExplicitSeasonYear()
     {
         var leagueApiAlias = "103";
-        var clubApiAlias = "203";
-        var (league, club) = PersonalDashboardEntityFactory.FootballClubInLeague(leagueApiAlias, clubApiAlias);
+        var league = PersonalDashboardEntityFactory.FootballLeague(l => l.AddAlias(DataSource.FootballApi, leagueApiAlias));
         _context.Add(league);
-        _context.Add(club);
         await _context.SaveChangesAsync();
 
-        var apiTeam = FootballApiDataFactory.Team();
-        var apiTeamWithKnownId = apiTeam with { Team = apiTeam.Team with { Id = long.Parse(clubApiAlias) } };
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), [apiTeamWithKnownId]);
+        // SeasonYear 2024 — distinct from calendar year 2026 to confirm explicit param is used
+        const int specificSeason = 2024;
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), specificSeason, []);
 
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand());
-
-        var dbClub = await _context.Set<FootballClubEntity>().FirstOrDefaultAsync(c => c.Id == club.Id);
-        Assert.NotNull(dbClub?.LastRefreshed);
-        Assert.Equal(apiTeamWithKnownId.Team.Name, dbClub?.Name);
-    }
-
-    [Fact]
-    public async Task WhenRefreshCompletedWithoutLeagueIdThenPublishesClubsRefreshedEvent()
-    {
-        var leagueApiAlias = "104";
-        var clubApiAlias = "204";
-        var (league, club) = PersonalDashboardEntityFactory.FootballClubInLeague(leagueApiAlias, clubApiAlias);
-        _context.Add(league);
-        _context.Add(club);
-        await _context.SaveChangesAsync();
-
-        var apiTeam = FootballApiDataFactory.Team();
-        var apiTeamWithKnownId = apiTeam with { Team = apiTeam.Team with { Id = long.Parse(clubApiAlias) } };
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), [apiTeamWithKnownId]);
-
-        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand());
-
-        Assert.Single(_cqrsBus.GetCapturedEvents<ClubsRefreshedEvent>());
+        // Should succeed because the handler uses SeasonYear=2024 when calling the API
+        await _cqrsBus.ExecuteAsync(new RefreshClubsCommand(league.Id, specificSeason));
     }
 }

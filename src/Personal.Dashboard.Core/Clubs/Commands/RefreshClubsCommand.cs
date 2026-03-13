@@ -11,7 +11,7 @@ using Personal.Dashboard.Core.Leagues.Entities;
 
 namespace Personal.Dashboard.Core.Clubs.Commands;
 
-public record RefreshClubsCommand(Guid? LeagueId = null) : ICommand;
+public record RefreshClubsCommand(Guid LeagueId, int SeasonYear) : ICommand;
 
 public class RefreshClubsCommandHandler(
     PersonalDashboardContext db,
@@ -21,82 +21,23 @@ public class RefreshClubsCommandHandler(
 {
     public async Task Handle(RefreshClubsCommand request, CancellationToken cancellationToken)
     {
-        if (request.LeagueId.HasValue)
-        {
-            await HandleWithLeague(request.LeagueId.Value, cancellationToken);
-        }
-        else
-        {
-            await HandleAllLeagues(cancellationToken);
-        }
-    }
-
-    private async Task HandleWithLeague(Guid leagueId, CancellationToken cancellationToken)
-    {
         var league = await db.Set<FootballLeagueEntity>()
             .Include(l => l.Aliases)
-            .FirstOrDefaultAsync(l => l.Id == leagueId, cancellationToken)
-            ?? throw new EntityNotFoundException<FootballLeagueEntity>(leagueId);
+            .FirstOrDefaultAsync(l => l.Id == request.LeagueId, cancellationToken)
+            ?? throw new EntityNotFoundException(typeof(FootballLeagueEntity), request.LeagueId);
 
         var faAlias = league.Aliases.FirstOrDefault(a => a.AliasSource == DataSource.FootballApi)
-            ?? throw new EntityNotFoundException<FootballLeagueAlias>(leagueId);
+            ?? throw new EntityNotFoundException(typeof(FootballLeagueAlias), request.LeagueId);
 
         var existingAliases = await db.Set<FootballClubAlias>()
             .Where(a => a.AliasSource == DataSource.FootballApi)
             .Include(a => a.Club)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
-        var seasonYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year
-            ?? league.Seasons.MaxBy(s => s.Year)?.Year
-            ?? DateTimeOffset.UtcNow.Year - 1;
         var response = await footballApiClient.GetTeamsAsync(
-            new FootballApiTeamsParameters(League: long.Parse(faAlias.Alias), Season: seasonYear));
+            new FootballApiTeamsParameters(League: long.Parse(faAlias.Alias), Season: request.SeasonYear));
 
         ProcessTeams(response.Response, league, existingAliases, cancellationToken);
-
-        await db.SaveChangesAsync(cancellationToken);
-        await bus.PublishAsync(new ClubsRefreshedEvent(), cancellationToken);
-    }
-
-    private async Task HandleAllLeagues(CancellationToken cancellationToken)
-    {
-        var clubAliases = await db.Set<FootballClubAlias>()
-            .Where(a => a.AliasSource == DataSource.FootballApi)
-            .Include(a => a.Club)
-            .ThenInclude(c => c.Leagues)
-            .ThenInclude(l => l.Aliases)
-            .ToListAsync(cancellationToken);
-
-        if (clubAliases.Count == 0)
-        {
-            return;
-        }
-
-        var leagues = clubAliases
-            .SelectMany(a => a.Club.Leagues)
-            .DistinctBy(l => l.Id)
-            .ToList();
-
-        foreach (var league in leagues)
-        {
-            var leagueFaAlias = league.Aliases.FirstOrDefault(a => a.AliasSource == DataSource.FootballApi);
-            if (leagueFaAlias is null)
-            {
-                continue;
-            }
-
-            var aliasDict = clubAliases
-                .Where(a => a.Club.Leagues.Any(l => l.Id == league.Id))
-                .ToDictionary(a => a.Alias, a => a);
-
-            var seasonYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year
-                ?? league.Seasons.MaxBy(s => s.Year)?.Year
-                ?? DateTimeOffset.UtcNow.Year - 1;
-            var response = await footballApiClient.GetTeamsAsync(
-                new FootballApiTeamsParameters(League: long.Parse(leagueFaAlias.Alias), Season: seasonYear));
-
-            ProcessTeams(response.Response, league, aliasDict, cancellationToken);
-        }
 
         await db.SaveChangesAsync(cancellationToken);
         await bus.PublishAsync(new ClubsRefreshedEvent(), cancellationToken);
