@@ -37,4 +37,32 @@ public class GetClubsQueryTests
         Assert.Equal(15, result.Total);
         Assert.Equal(10, result.Items.Length);
     }
+
+    [Fact]
+    public async Task WhenMixedFavoritesThenReturnsFavoritesFirst()
+    {
+        var favorited = PersonalDashboardEntityFactory.FootballClub(c => c.Favorite());
+        var unfavorited = PersonalDashboardEntityFactory.FootballClub();
+        _context.Add(unfavorited);
+        _context.Add(favorited);
+        await _context.SaveChangesAsync();
+
+        var result = await _bus.QueryAsync(new GetClubsQuery(Offset: 0, Limit: 100));
+
+        Assert.True(result.Items[0].IsFavorite);
+        Assert.False(result.Items[1].IsFavorite);
+    }
+
+    [Fact]
+    public async Task WhenClubBelongsToLeagueThenReturnsLeaguesInModel()
+    {
+        var (league, club) = PersonalDashboardEntityFactory.FootballClubInLeague();
+        _context.Add(league);
+        _context.Add(club);
+        await _context.SaveChangesAsync();
+
+        var result = await _bus.QueryAsync(new GetClubsQuery());
+
+        Assert.Single(result.Items[0].Leagues, l => l.Id == league.Id);
+    }
 }

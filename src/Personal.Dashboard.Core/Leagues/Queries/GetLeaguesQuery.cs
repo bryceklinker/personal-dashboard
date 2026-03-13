@@ -1,5 +1,6 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
 using Personal.Dashboard.Core.Common.Cqrs.Queries;
 using Personal.Dashboard.Core.Common.Storage;
 using Personal.Dashboard.Core.Leagues.Entities;
@@ -18,7 +19,9 @@ public class GetLeaguesQueryHandler(
         CancellationToken cancellationToken)
     {
         var query = context.Set<FootballLeagueEntity>()
-            .OrderBy(l => l.Name)
+            .Include(l => l.Seasons)
+            .OrderByDescending(l => l.IsFavorite)
+            .ThenBy(l => l.Name)
             .ProjectTo<FootballLeagueModel>(mapper.ConfigurationProvider);
 
         return await query.ToPagedListAsync(request, cancellationToken).ConfigureAwait(false);
