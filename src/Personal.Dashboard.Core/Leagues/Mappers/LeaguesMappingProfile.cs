@@ -8,6 +8,8 @@ public class LeaguesMappingProfile : Profile
 {
     public LeaguesMappingProfile()
     {
-        CreateMap<FootballLeagueEntity, FootballLeagueModel>();
+        CreateMap<FootballLeagueSeason, FootballLeagueSeasonModel>();
+        CreateMap<FootballLeagueEntity, FootballLeagueModel>()
+            .ForMember(d => d.Seasons, o => o.MapFrom(s => s.Seasons));
     }
 }
