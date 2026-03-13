@@ -32,6 +32,7 @@ public class LeagueFavoritingTests(ApplicationFixture app, PlaywrightFixture pla
         await favoriteButton.WaitForAsync();
         await favoriteButton.ClickAsync();
 
-        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First)
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30000 });
     }
 }

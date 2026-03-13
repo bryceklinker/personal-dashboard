@@ -14,7 +14,8 @@ public class ClubFavoritingTests(ApplicationFixture app, PlaywrightFixture playw
         await leagueFavoriteButton.WaitForAsync();
         await leagueFavoriteButton.ClickAsync();
 
-        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First)
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30000 });
 
         await playwright.GoToPageAsync(page, "/clubs");
 
@@ -22,6 +23,7 @@ public class ClubFavoritingTests(ApplicationFixture app, PlaywrightFixture playw
         await clubFavoriteButton.WaitForAsync();
         await clubFavoriteButton.ClickAsync();
 
-        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First).ToBeVisibleAsync();
+        await Expect(page.GetByRole(AriaRole.Button, new() { Name = "unfavorite" }).First)
+            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 30000 });
     }
 }

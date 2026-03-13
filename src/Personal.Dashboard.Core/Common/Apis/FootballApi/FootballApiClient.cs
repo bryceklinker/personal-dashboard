@@ -49,9 +49,10 @@ public class FootballApiClient(
     private async Task<FootballApiResponse<TResponse>> GetAsync<TParameters, TResponse>(string path, TParameters? parameters) 
         where TParameters : FootballApiParameters
     {
-        var pathAndQuery = parameters is null
+        var queryString = parameters?.AsQueryString();
+        var pathAndQuery = string.IsNullOrEmpty(queryString)
             ? path
-            : $"{path}?{parameters.AsQueryString()}";
+            : $"{path}?{queryString}";
         
         var response = await Client.GetAsync(pathAndQuery);
         var apiResponse = await response.Content.ReadFromJsonAsync<FootballApiResponse<TResponse>>();
