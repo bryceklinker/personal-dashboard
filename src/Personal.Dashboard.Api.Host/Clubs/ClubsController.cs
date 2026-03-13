@@ -27,4 +27,10 @@ public class ClubsController(ICqrsBus cqrsBus) : CqrsController(cqrsBus)
     {
         return await ExecuteAsync(new UnfavoriteClubCommand(id), statusCode: 204);
     }
+
+    [HttpPost("refresh")]
+    public async Task<IActionResult> RefreshClubs()
+    {
+        return await ExecuteAsync(new RefreshAllFavoritedClubsCommand(), statusCode: 204);
+    }
 }
