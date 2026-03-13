@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Clubs.Commands;
 using Personal.Dashboard.Core.Common.Cqrs;
@@ -18,18 +19,28 @@ public class FavoriteLeagueCommandHandler(
 {
     public async Task Handle(FavoriteLeagueCommand request, CancellationToken cancellationToken)
     {
-        var league = await db.Set<FootballLeagueEntity>().FindAsync([request.LeagueId], cancellationToken)
+        var league = await db.Set<FootballLeagueEntity>()
+            .Include(l => l.Seasons)
+            .FirstOrDefaultAsync(l => l.Id == request.LeagueId, cancellationToken)
             ?? throw new EntityNotFoundException(typeof(FootballLeagueEntity), request.LeagueId);
+
         league.Favorite();
-        
         await db.SaveChangesAsync(cancellationToken);
+
+        var currentSeason = league.Seasons.FirstOrDefault(s => s.IsCurrent);
+        if (currentSeason is null)
+        {
+            logger.LogWarning("League {LeagueId} has no current season; clubs not loaded", request.LeagueId);
+            return;
+        }
+
         try
         {
-            await bus.ExecuteAsync(new RefreshClubsCommand(request.LeagueId, DateTimeOffset.UtcNow.Year), cancellationToken);
+            await bus.ExecuteAsync(new RefreshClubsCommand(request.LeagueId, currentSeason.Year), cancellationToken);
         }
         catch (Exception e)
         {
-            logger.LogWarning(e, "Failed to refresh clubs for league {LeagueId}; league is still favorited", request.LeagueId);
+            logger.LogWarning(e, "Failed to refresh clubs for league {LeagueId}", request.LeagueId);
         }
     }
 }

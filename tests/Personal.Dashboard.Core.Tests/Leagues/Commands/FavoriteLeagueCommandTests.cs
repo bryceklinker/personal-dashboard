@@ -13,6 +13,7 @@ namespace Personal.Dashboard.Core.Tests.Leagues.Commands;
 public class FavoriteLeagueCommandTests
 {
     private const string BaseUrl = "https://football.api.com";
+    private const int SeasonYear = 2025;
     private readonly PersonalDashboardContext _context;
     private readonly CapturingCqrsBus _cqrsBus;
     private readonly FakeHttpMessageHandler _handler;
@@ -31,14 +32,11 @@ public class FavoriteLeagueCommandTests
     [Fact]
     public async Task WhenLeagueExistsThenSetsIsFavoriteToTrue()
     {
-        const string leagueApiAlias = "300";
-        var league = PersonalDashboardEntityFactory.FootballLeague(
-            l => l.AddAlias(DataSource.FootballApi, leagueApiAlias));
+        var league = PersonalDashboardEntityFactory.FootballLeague();
         _context.Add(league);
         await _context.SaveChangesAsync();
 
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), DateTimeOffset.UtcNow.Year, []);
-
+        // No current season → no RefreshClubsCommand → no HTTP setup needed
         await _cqrsBus.ExecuteAsync(new FavoriteLeagueCommand(league.Id));
 
         var updated = await _context.Set<FootballLeagueEntity>().FindAsync(league.Id);
@@ -46,20 +44,34 @@ public class FavoriteLeagueCommandTests
     }
 
     [Fact]
-    public async Task WhenLeagueExistsThenDispatchesRefreshClubsCommand()
+    public async Task WhenLeagueHasCurrentSeasonThenDispatchesRefreshClubsCommandWithSeasonYear()
     {
         const string leagueApiAlias = "301";
         var league = PersonalDashboardEntityFactory.FootballLeague(
             l => l.AddAlias(DataSource.FootballApi, leagueApiAlias));
+        league.Seasons.Add(new FootballLeagueSeason { Year = SeasonYear, IsCurrent = true, League = league });
         _context.Add(league);
         await _context.SaveChangesAsync();
 
-        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), DateTimeOffset.UtcNow.Year, []);
+        await _handler.SetupGetTeams(BaseUrl, long.Parse(leagueApiAlias), SeasonYear, []);
 
         await _cqrsBus.ExecuteAsync(new FavoriteLeagueCommand(league.Id));
 
         var dispatched = _cqrsBus.GetCapturedCommands<RefreshClubsCommand>();
-        Assert.Single(dispatched, c => c.LeagueId == league.Id);
+        Assert.Single(dispatched, c => c.LeagueId == league.Id && c.SeasonYear == SeasonYear);
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasNoCurrentSeasonThenDoesNotDispatchRefreshClubsCommand()
+    {
+        var league = PersonalDashboardEntityFactory.FootballLeague();
+        league.Seasons.Add(new FootballLeagueSeason { Year = 2024, IsCurrent = false, League = league });
+        _context.Add(league);
+        await _context.SaveChangesAsync();
+
+        await _cqrsBus.ExecuteAsync(new FavoriteLeagueCommand(league.Id));
+
+        Assert.Empty(_cqrsBus.GetCapturedCommands<RefreshClubsCommand>());
     }
 
     [Fact]
