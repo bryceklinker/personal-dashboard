@@ -1,0 +1,72 @@
+@using Personal.Dashboard.Models
+@using Personal.Dashboard.Web.Host.Common.Apis
+@using MudBlazor
+
+@inject PersonalDashboardApiClient Client
+@inject ISnackbar Snackbar
+
+@if (Club is null)
+{
+    <MudText Typo="Typo.body1" Class="ma-4">Select a club to view details</MudText>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudGrid>
+                <MudItem xs="10">
+                    <MudText Typo="Typo.h6">@Club.Name</MudText>
+                    @if (Club.LastRefreshed.HasValue)
+                    {
+                        <MudText Typo="Typo.caption">Last refreshed: @Club.LastRefreshed.Value.ToString("g")</MudText>
+                    }
+                </MudItem>
+                <MudItem xs="2">
+                    <MudIconButton Icon="@(Club.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                   OnClick="@OnToggleFavoriteAsync"
+                                   role="button"
+                                   aria-label="@(Club.IsFavorite ? "unfavorite" : "favorite")" />
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        @if (Club.Leagues.Length > 0)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-3">
+                    <MudText Typo="Typo.overline">Leagues</MudText>
+                    <MudList T="FootballClubLeagueModel">
+                        @foreach (var league in Club.Leagues)
+                        {
+                            <MudListItem>
+                                <MudText Typo="Typo.body2">@league.Name</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public FootballClubModel? Club { get; set; }
+    [Parameter] public EventCallback OnFavoriteChanged { get; set; }
+
+    private async Task OnToggleFavoriteAsync()
+    {
+        if (Club is null) return;
+        try
+        {
+            if (Club.IsFavorite)
+                await Client.UnfavoriteClubAsync(Club.Id);
+            else
+                await Client.FavoriteClubAsync(Club.Id);
+            await OnFavoriteChanged.InvokeAsync();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to update favorite status", Severity.Error);
+        }
+    }
+}
