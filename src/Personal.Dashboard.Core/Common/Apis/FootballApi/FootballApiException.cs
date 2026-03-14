@@ -13,7 +13,7 @@ public class FootballApiException<TResponse>(
         FootballApiResponse<TResult>? response)
     {
         ArgumentNullException.ThrowIfNull(response);
-        return response.Errors.Length != 0
+        return response.Errors.Count != 0
             ? throw new FootballApiException<TResult>(response)
             : response;
     }

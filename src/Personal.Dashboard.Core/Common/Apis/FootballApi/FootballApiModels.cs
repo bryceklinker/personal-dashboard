@@ -118,14 +118,14 @@ public record FootballApiResponse<
     TResponse
 >(
     string Get,
-    FootballApiError[] Errors,
+    Dictionary<string, object> Errors,
     long Results,
     FootballApiPaging Paging,
     TResponse Response
 );
 
 public record FootballApiLeaguesResponse(
-    FootballApiError[] Errors,
+    Dictionary<string, object> Errors,
     long Results,
     FootballApiPaging Paging,
     FootballApiLeague[] Response
