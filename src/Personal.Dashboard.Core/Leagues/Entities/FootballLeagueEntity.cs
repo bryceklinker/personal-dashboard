@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Personal.Dashboard.Core.Clubs.Entities;
+using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 namespace Personal.Dashboard.Core.Leagues.Entities;
@@ -48,10 +49,41 @@ public class FootballLeagueEntity
     public void Favorite() => IsFavorite = true;
     public void Unfavorite() => IsFavorite = false;
 
-    public void UpdateFromFootballApi(FootballApiLeague league)
+    public static FootballLeagueEntity CreateFromFootballApi(FootballApiLeague apiLeague)
     {
-        Name = league.League.Name;
+        var entity = new FootballLeagueEntity();
+        entity.Aliases.Add(new FootballLeagueAlias
+        {
+            AliasSource = DataSource.FootballApi,
+            Alias = $"{apiLeague.League.Id}",
+            League = entity,
+        });
+        entity.UpdateFromFootballApi(apiLeague);
+        return entity;
+    }
+
+    public void UpdateFromFootballApi(FootballApiLeague apiLeague)
+    {
+        Name = apiLeague.League.Name;
         LastRefreshed = DateTimeOffset.UtcNow;
+        UpsertSeasons(apiLeague.Seasons);
+    }
+
+    private void UpsertSeasons(FootballApiSeason[] apiSeasons)
+    {
+        var knownYears = Seasons.ToDictionary(s => s.Year);
+        foreach (var apiSeason in apiSeasons)
+        {
+            var year = (int)apiSeason.Year;
+            if (knownYears.TryGetValue(year, out var existing))
+                existing.IsCurrent = apiSeason.Current;
+            else
+            {
+                var season = new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = this };
+                Seasons.Add(season);
+                knownYears[year] = season;
+            }
+        }
     }
 }
 

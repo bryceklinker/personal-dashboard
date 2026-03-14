@@ -31,21 +31,10 @@ public class RefreshLeaguesCommandHandler(
         foreach (var apiLeague in response.Response)
         {
             var aliasKey = $"{apiLeague.League.Id}";
-            FootballLeagueEntity entity;
             if (existingAliases.TryGetValue(aliasKey, out var alias))
-            {
                 alias.League.UpdateFromFootballApi(apiLeague);
-                entity = alias.League;
-            }
             else
-            {
-                entity = new FootballLeagueEntity();
-                entity.AddAlias(DataSource.FootballApi, aliasKey);
-                entity.UpdateFromFootballApi(apiLeague);
-                context.Add(entity);
-            }
-
-            UpsertSeasons(entity, apiLeague.Seasons);
+                context.Add(FootballLeagueEntity.CreateFromFootballApi(apiLeague));
         }
 
         await context.SaveChangesAsync(cancellationToken);
@@ -62,22 +51,5 @@ public class RefreshLeaguesCommandHandler(
         }
 
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
-    }
-
-    private void UpsertSeasons(FootballLeagueEntity entity, FootballApiSeason[] apiSeasons)
-    {
-        var knownYears = entity.Seasons.ToDictionary(s => s.Year);
-        foreach (var apiSeason in apiSeasons)
-        {
-            var year = (int)apiSeason.Year;
-            if (knownYears.TryGetValue(year, out var season))
-                season.IsCurrent = apiSeason.Current;
-            else
-            {
-                var newSeason = new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity };
-                context.Add(newSeason);
-                knownYears[year] = newSeason;
-            }
-        }
     }
 }
