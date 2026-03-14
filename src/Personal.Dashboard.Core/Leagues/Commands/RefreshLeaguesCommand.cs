@@ -64,7 +64,7 @@ public class RefreshLeaguesCommandHandler(
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
     }
 
-    private static void UpsertSeasons(FootballLeagueEntity entity, FootballApiSeason[] apiSeasons)
+    private void UpsertSeasons(FootballLeagueEntity entity, FootballApiSeason[] apiSeasons)
     {
         var existingSeasons = entity.Seasons.ToDictionary(s => s.Year);
         foreach (var apiSeason in apiSeasons)
@@ -73,8 +73,7 @@ public class RefreshLeaguesCommandHandler(
             if (existingSeasons.TryGetValue(year, out var season))
                 season.IsCurrent = apiSeason.Current;
             else
-                // `required FootballLeagueEntity League` must be set explicitly; EF Core handles the FK via the navigation
-                entity.Seasons.Add(new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity });
+                context.Add(new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity });
         }
     }
 }
