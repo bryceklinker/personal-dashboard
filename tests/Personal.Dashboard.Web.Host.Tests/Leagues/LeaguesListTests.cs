@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Personal.Dashboard.Models;
 using Personal.Dashboard.Test.Support;
@@ -195,5 +196,38 @@ public class LeaguesListTests
         await Eventually.Assert(() =>
             Assert.Contains(context.Snackbar.AddedMessages,
                 m => m.Severity == Severity.Error));
+    }
+
+    [Fact]
+    public async Task WhenLeagueRowClickedThenInvokesOnLeagueSelected()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel();
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        FootballLeagueModel? selected = null;
+        var page = context.Render<LeaguesList>(parameters =>
+            parameters.Add(p => p.OnLeagueSelected, EventCallback.Factory.Create<FootballLeagueModel>(
+                context, m => selected = m)));
+
+        await Eventually.Assert(() =>
+            Assert.True(page.FindComponents<MudListItem<FootballLeagueModel>>().Count > 0));
+
+        await page.FindComponents<MudListItem<FootballLeagueModel>>()[0].Find("div[role='button']").ClickAsync();
+
+        await Eventually.Assert(() => Assert.Equal(league.Id, selected?.Id));
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasCurrentSeasonThenDisplaysSeasonYear()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var season = new FootballLeagueSeasonModel(2025, true);
+        var league = DataFactory.FootballLeagueModel() with { Seasons = [season] };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        var page = context.Render<LeaguesList>();
+
+        await Eventually.Assert(() => Assert.Contains("2025", page.Markup));
     }
 }

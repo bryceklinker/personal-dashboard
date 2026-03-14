@@ -25,14 +25,21 @@
             <MudList T="FootballLeagueModel">
                 @foreach (var league in Leagues.Items)
                 {
+                    var currentYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year.ToString() ?? "";
                     <MudListItem>
                         <MudGrid>
                             <MudItem xs="10">
-                                <MudText Typo="Typo.body1">@league.Name</MudText>
-                                @if (league.LastRefreshed.HasValue)
-                                {
-                                    <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
-                                }
+                                <div role="button" style="cursor:pointer;width:100%" @onclick="@(() => OnLeagueSelected.InvokeAsync(league))">
+                                    <MudText Typo="Typo.body1">@league.Name</MudText>
+                                    @if (!string.IsNullOrEmpty(currentYear))
+                                    {
+                                        <MudText Typo="Typo.caption">@currentYear season</MudText>
+                                    }
+                                    @if (league.LastRefreshed.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
+                                    }
+                                </div>
                             </MudItem>
                             <MudItem xs="2">
                                 <MudIconButton Icon="@(league.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
@@ -62,7 +69,9 @@
 </MudGrid>
 
 @code {
-    private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } =
+    [Parameter] public EventCallback<FootballLeagueModel> OnLeagueSelected { get; set; }
+
+    public PagedListResultModel<FootballLeagueModel> Leagues { get; private set; } =
         PagedListResultModel<FootballLeagueModel>.Empty();
 
     private bool HasNextPage => Leagues.Total > _currentParameters.Offset + Leagues.Limit;
@@ -79,7 +88,7 @@
         await LoadLeaguesAsync();
     }
 
-    private async Task LoadLeaguesAsync()
+    public async Task LoadLeaguesAsync()
     {
         Leagues = await Client.GetLeaguesAsync(_currentParameters);
     }
