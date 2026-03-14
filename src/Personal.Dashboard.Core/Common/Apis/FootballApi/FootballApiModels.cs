@@ -1,6 +1,28 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
+
+/// <summary>
+/// The Football API returns "errors": [] on success and "errors": {"field": "msg"} on failure.
+/// This converter handles both forms, treating an empty array as an empty dictionary.
+/// </summary>
+public class FootballApiErrorsConverter : JsonConverter<Dictionary<string, object>>
+{
+    public override Dictionary<string, object> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray) { }
+            return new Dictionary<string, object>();
+        }
+        return JsonSerializer.Deserialize<Dictionary<string, object>>(ref reader, options)
+            ?? new Dictionary<string, object>();
+    }
+
+    public override void Write(Utf8JsonWriter writer, Dictionary<string, object> value, JsonSerializerOptions options)
+        => JsonSerializer.Serialize(writer, value, options);
+}
 
 public record FootballApiPaging(long Current, long Total);
 
@@ -118,6 +140,7 @@ public record FootballApiResponse<
     TResponse
 >(
     string Get,
+    [property: JsonConverter(typeof(FootballApiErrorsConverter))]
     Dictionary<string, object> Errors,
     long Results,
     FootballApiPaging Paging,
