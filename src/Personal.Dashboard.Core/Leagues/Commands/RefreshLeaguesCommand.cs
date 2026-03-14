@@ -66,14 +66,18 @@ public class RefreshLeaguesCommandHandler(
 
     private void UpsertSeasons(FootballLeagueEntity entity, FootballApiSeason[] apiSeasons)
     {
-        var existingSeasons = entity.Seasons.ToDictionary(s => s.Year);
+        var knownYears = entity.Seasons.ToDictionary(s => s.Year);
         foreach (var apiSeason in apiSeasons)
         {
             var year = (int)apiSeason.Year;
-            if (existingSeasons.TryGetValue(year, out var season))
+            if (knownYears.TryGetValue(year, out var season))
                 season.IsCurrent = apiSeason.Current;
             else
-                context.Add(new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity });
+            {
+                var newSeason = new FootballLeagueSeason { Year = year, IsCurrent = apiSeason.Current, League = entity };
+                context.Add(newSeason);
+                knownYears[year] = newSeason;
+            }
         }
     }
 }

@@ -26,7 +26,7 @@ public class FootballLeagueSeasonConfiguration : IEntityTypeConfiguration<Footba
 
 public class FootballLeagueEntity
 {
-    public Guid Id { get; set; } = Guid.Empty;
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Name { get; set; } = "";
     public DateTimeOffset? LastRefreshed { get; set; }
     public bool IsFavorite { get; set; }
