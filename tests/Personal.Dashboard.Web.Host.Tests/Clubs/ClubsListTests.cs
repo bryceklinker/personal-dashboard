@@ -1,4 +1,5 @@
 using AngleSharp.Dom;
+using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using Personal.Dashboard.Models;
 using Personal.Dashboard.Test.Support;
@@ -207,5 +208,25 @@ public class ClubsListTests
         await Eventually.Assert(() =>
             Assert.Contains(context.Snackbar.AddedMessages,
                 m => m.Severity == Severity.Error));
+    }
+
+    [Fact]
+    public async Task WhenClubRowClickedThenInvokesOnClubSelected()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var club = DataFactory.FootballClubModel();
+        await context.HttpHandler.SetupClubs(clubs: [club]);
+
+        FootballClubModel? selected = null;
+        var page = context.Render<ClubsList>(parameters =>
+            parameters.Add(p => p.OnClubSelected, EventCallback.Factory.Create<FootballClubModel>(
+                context, m => selected = m)));
+
+        await Eventually.Assert(() =>
+            Assert.True(page.FindComponents<MudListItem<FootballClubModel>>().Count > 0));
+
+        await page.FindComponents<MudListItem<FootballClubModel>>()[0].Find("div[role='button']").ClickAsync();
+
+        await Eventually.Assert(() => Assert.Equal(club.Id, selected?.Id));
     }
 }

@@ -34,11 +34,13 @@
                     <MudListItem>
                         <MudGrid>
                             <MudItem xs="10">
-                                <MudText Typo="Typo.body1">@club.Name</MudText>
-                                @if (club.LastRefreshed.HasValue)
-                                {
-                                    <MudText Typo="Typo.caption">@club.LastRefreshed.Value.ToString("g")</MudText>
-                                }
+                                <div role="button" style="cursor:pointer;width:100%" @onclick="@(() => OnClubSelected.InvokeAsync(club))">
+                                    <MudText Typo="Typo.body1">@club.Name</MudText>
+                                    @if (club.LastRefreshed.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption">@club.LastRefreshed.Value.ToString("g")</MudText>
+                                    }
+                                </div>
                             </MudItem>
                             <MudItem xs="2">
                                 <MudIconButton Icon="@(club.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
@@ -68,7 +70,9 @@
 </MudGrid>
 
 @code {
-    private PagedListResultModel<FootballClubModel> Clubs { get; set; } =
+    [Parameter] public EventCallback<FootballClubModel> OnClubSelected { get; set; }
+
+    public PagedListResultModel<FootballClubModel> Clubs { get; private set; } =
         PagedListResultModel<FootballClubModel>.Empty();
 
     private bool HasNextPage => Clubs.Total > _currentParameters.Offset + Clubs.Limit;
@@ -85,7 +89,7 @@
         await LoadClubsAsync();
     }
 
-    private async Task LoadClubsAsync()
+    public async Task LoadClubsAsync()
     {
         Clubs = await Client.GetClubsAsync(_currentParameters);
     }
