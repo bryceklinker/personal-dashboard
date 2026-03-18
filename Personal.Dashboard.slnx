@@ -12,8 +12,12 @@
     <File Path="CLAUDE.md" />
     <File Path="docs/superpowers/specs/2026-03-10-leagues-refresh-design.md" />
     <File Path="docs/superpowers/specs/2026-03-10-league-club-favoriting-design.md" />
+    <File Path="docs/superpowers/specs/2026-03-13-league-season-detail-panels-design.md" />
+    <File Path="docs/superpowers/specs/2026-03-17-league-country-design.md" />
     <File Path="docs/superpowers/plans/2026-03-10-leagues-refresh.md" />
     <File Path="docs/superpowers/plans/2026-03-10-league-club-favoriting.md" />
+    <File Path="docs/superpowers/plans/2026-03-13-league-seasons-detail-panels.md" />
+    <File Path="docs/superpowers/plans/2026-03-17-league-country.md" />
   </Folder>
   <Folder Name="/.scm/">
     <File Path=".gitignore" />
