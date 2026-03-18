@@ -26,7 +26,7 @@ public class FootballApiErrorsConverter : JsonConverter<Dictionary<string, objec
 
 public record FootballApiPaging(long Current, long Total);
 
-public record FootballApiCountry(string Name, string Code, string Flag);
+public record FootballApiCountry(string Name, string? Code, string? Flag);
 
 public record FootballApiLeagueInfo(long Id, string Name, string Type, string Logo);
 
