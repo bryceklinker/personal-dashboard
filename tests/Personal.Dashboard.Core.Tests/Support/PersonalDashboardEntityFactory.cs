@@ -1,6 +1,7 @@
 using Bogus;
 using Personal.Dashboard.Core.Clubs.Entities;
 using Personal.Dashboard.Core.Common;
+using Personal.Dashboard.Core.Countries.Entities;
 using Personal.Dashboard.Core.Leagues.Entities;
 
 namespace Personal.Dashboard.Core.Tests.Support;
@@ -9,12 +10,25 @@ public static class PersonalDashboardEntityFactory
 {
     private static readonly Faker Faker = new();
 
+    public static FootballCountryEntity FootballCountry(Action<FootballCountryEntity>? configure = null)
+    {
+        var entity = new FootballCountryEntity
+        {
+            Name = Faker.Address.Country(),
+            Code = Faker.Address.CountryCode(),
+            Flag = Faker.Internet.Url(),
+        };
+        configure?.Invoke(entity);
+        return entity;
+    }
+
     public static FootballLeagueEntity FootballLeague(Action<FootballLeagueEntity>? configure = null)
     {
         var entity = new FootballLeagueEntity
         {
             Name = Faker.Company.CompanyName(),
             Id = Faker.Random.Guid(),
+            Country = FootballCountry(),
         };
         configure?.Invoke(entity);
         return entity;
