@@ -5,6 +5,7 @@ using Personal.Dashboard.Core.Common.Apis.FootballApi;
 using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
 using Personal.Dashboard.Core.Common.Storage;
+using Personal.Dashboard.Core.Countries.Entities;
 using Personal.Dashboard.Core.Leagues.Entities;
 using Personal.Dashboard.Core.Leagues.Events;
 
@@ -30,11 +31,14 @@ public class RefreshLeaguesCommandHandler(
 
         foreach (var apiLeague in response.Response)
         {
+            var country = FootballCountryEntity.CreateFromFootballApi(apiLeague.Country);
+            context.Add(country);
+
             var aliasKey = $"{apiLeague.League.Id}";
             if (existingAliases.TryGetValue(aliasKey, out var alias))
-                alias.League.UpdateFromFootballApi(apiLeague);
+                alias.League.UpdateFromFootballApi(apiLeague, country);
             else
-                context.Add(FootballLeagueEntity.CreateFromFootballApi(apiLeague));
+                context.Add(FootballLeagueEntity.CreateFromFootballApi(apiLeague, country));
         }
 
         await context.SaveChangesAsync(cancellationToken);

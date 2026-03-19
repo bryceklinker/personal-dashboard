@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Personal.Dashboard.Core.Clubs.Entities;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
+using Personal.Dashboard.Core.Countries.Entities;
 
 namespace Personal.Dashboard.Core.Leagues.Entities;
 
@@ -12,6 +13,8 @@ public class FootballLeagueEntity
     public string Name { get; set; } = "";
     public DateTimeOffset? LastRefreshed { get; set; }
     public bool IsFavorite { get; set; }
+    public Guid? CountryId { get; set; }
+    public FootballCountryEntity? Country { get; set; }
 
     public ICollection<FootballLeagueAlias> Aliases { get; set; } = new List<FootballLeagueAlias>();
     public ICollection<FootballClubEntity> Clubs { get; set; } = new List<FootballClubEntity>();
@@ -30,23 +33,19 @@ public class FootballLeagueEntity
     public void Favorite() => IsFavorite = true;
     public void Unfavorite() => IsFavorite = false;
 
-    public static FootballLeagueEntity CreateFromFootballApi(FootballApiLeague apiLeague)
+    public static FootballLeagueEntity CreateFromFootballApi(FootballApiLeague apiLeague, FootballCountryEntity country)
     {
         var entity = new FootballLeagueEntity();
-        entity.Aliases.Add(new FootballLeagueAlias
-        {
-            AliasSource = DataSource.FootballApi,
-            Alias = $"{apiLeague.League.Id}",
-            League = entity,
-        });
-        entity.UpdateFromFootballApi(apiLeague);
+        entity.AddAlias(DataSource.FootballApi, $"{apiLeague.League.Id}");
+        entity.UpdateFromFootballApi(apiLeague, country);
         return entity;
     }
 
-    public void UpdateFromFootballApi(FootballApiLeague apiLeague)
+    public void UpdateFromFootballApi(FootballApiLeague apiLeague, FootballCountryEntity country)
     {
         Name = apiLeague.League.Name;
         LastRefreshed = DateTimeOffset.UtcNow;
+        Country = country;
         UpsertSeasons(apiLeague.Seasons);
     }
 
@@ -79,5 +78,10 @@ public class FootballLeagueEntityConfiguration : IEntityTypeConfiguration<Footba
         builder.HasMany(p => p.Aliases)
             .WithOne(a => a.League)
             .HasForeignKey(a => a.LeagueId);
+
+        builder.HasOne(p => p.Country)
+            .WithMany()
+            .HasForeignKey(p => p.CountryId)
+            .IsRequired(false);
     }
 }
