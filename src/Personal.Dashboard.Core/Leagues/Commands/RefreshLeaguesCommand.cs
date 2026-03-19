@@ -34,23 +34,11 @@ public class RefreshLeaguesCommandHandler(
             .Include(a => a.Country)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
+        var resolvedCountries = UpsertCountries(response.Response, existingCountryAliases);
+
         foreach (var apiLeague in response.Response)
         {
-            var countryKey = apiLeague.Country.Name.ToLowerInvariant();
-            FootballCountryEntity country;
-            if (existingCountryAliases.TryGetValue(countryKey, out var countryAlias))
-            {
-                country = countryAlias.Country;
-                country.UpdateFromFootballApi(apiLeague.Country);
-            }
-            else
-            {
-                country = FootballCountryEntity.CreateFromFootballApi(apiLeague.Country);
-                context.Add(country);
-                existingCountryAliases[countryKey] = country.Aliases
-                    .First(a => a.AliasSource == DataSource.FootballApi);
-            }
-
+            var country = resolvedCountries[apiLeague.Country.Name.ToLowerInvariant()];
             var aliasKey = $"{apiLeague.League.Id}";
             if (existingAliases.TryGetValue(aliasKey, out var alias))
                 alias.League.UpdateFromFootballApi(apiLeague, country);
@@ -72,5 +60,30 @@ public class RefreshLeaguesCommandHandler(
         }
 
         await bus.PublishAsync(new LeaguesRefreshedEvent(), cancellationToken);
+    }
+
+    private Dictionary<string, FootballCountryEntity> UpsertCountries(
+        FootballApiLeague[] apiLeagues,
+        Dictionary<string, FootballCountryAlias> existingCountryAliases)
+    {
+        var resolved = new Dictionary<string, FootballCountryEntity>();
+        foreach (var apiCountry in apiLeagues
+            .Select(l => l.Country)
+            .DistinctBy(c => c.Name.ToLowerInvariant()))
+        {
+            var key = apiCountry.Name.ToLowerInvariant();
+            if (existingCountryAliases.TryGetValue(key, out var existingAlias))
+            {
+                existingAlias.Country.UpdateFromFootballApi(apiCountry);
+                resolved[key] = existingAlias.Country;
+            }
+            else
+            {
+                var country = FootballCountryEntity.CreateFromFootballApi(apiCountry);
+                context.Add(country);
+                resolved[key] = country;
+            }
+        }
+        return resolved;
     }
 }
