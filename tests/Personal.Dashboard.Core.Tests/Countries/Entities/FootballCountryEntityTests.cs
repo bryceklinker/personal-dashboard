@@ -1,18 +1,18 @@
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Apis.FootballApi;
-using Personal.Dashboard.Core.Leagues.Entities;
+using Personal.Dashboard.Core.Countries.Entities;
 using Personal.Dashboard.Core.Tests.Support;
 
-namespace Personal.Dashboard.Core.Tests.Leagues.Entities;
+namespace Personal.Dashboard.Core.Tests.Countries.Entities;
 
-public class FootballCountryTests
+public class FootballCountryEntityTests
 {
     [Fact]
     public void WhenCreateFromFootballApiCalledThenStoresNameCodeFlag()
     {
         var apiCountry = FootballApiDataFactory.Country();
 
-        var country = FootballCountry.CreateFromFootballApi(apiCountry);
+        var country = FootballCountryEntity.CreateFromFootballApi(apiCountry);
 
         Assert.Equal(apiCountry.Name, country.Name);
         Assert.Equal(apiCountry.Code, country.Code);
@@ -24,7 +24,7 @@ public class FootballCountryTests
     {
         var apiCountry = FootballApiDataFactory.Country() with { Name = "England" };
 
-        var country = FootballCountry.CreateFromFootballApi(apiCountry);
+        var country = FootballCountryEntity.CreateFromFootballApi(apiCountry);
 
         Assert.Single(country.Aliases, a =>
             a.AliasSource == DataSource.FootballApi && a.Alias == "england");
@@ -33,7 +33,7 @@ public class FootballCountryTests
     [Fact]
     public void WhenUpdateFromFootballApiCalledThenUpdatesNameCodeFlag()
     {
-        var country = FootballCountry.CreateFromFootballApi(FootballApiDataFactory.Country());
+        var country = FootballCountryEntity.CreateFromFootballApi(FootballApiDataFactory.Country());
         var updated = FootballApiDataFactory.Country();
 
         country.UpdateFromFootballApi(updated);
@@ -48,7 +48,7 @@ public class FootballCountryTests
     {
         var apiCountry = new FootballApiCountry("World", null, null);
 
-        var country = FootballCountry.CreateFromFootballApi(apiCountry);
+        var country = FootballCountryEntity.CreateFromFootballApi(apiCountry);
 
         Assert.Null(country.Code);
         Assert.Null(country.Flag);
