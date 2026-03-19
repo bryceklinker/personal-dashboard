@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Personal.Dashboard.Core.Clubs.Commands;
 using Personal.Dashboard.Core.Common;
 using Personal.Dashboard.Core.Common.Storage;
+using Personal.Dashboard.Core.Common.Apis.FootballApi;
+using Personal.Dashboard.Core.Countries.Entities;
 using Personal.Dashboard.Core.Leagues.Commands;
 using Personal.Dashboard.Core.Leagues.Entities;
 using Personal.Dashboard.Core.Leagues.Events;
@@ -155,5 +157,71 @@ public class RefreshLeaguesCommandTests
         await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
 
         Assert.Empty(_cqrsBus.GetCapturedCommands<RefreshClubsCommand>());
+    }
+
+    [Fact]
+    public async Task WhenRefreshingLeaguesThenCreatesCountryForEachLeague()
+    {
+        var apiLeague = FootballApiDataFactory.League();
+        await _handler.SetupGetLeagues(BaseUrl, [apiLeague]);
+
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+
+        var countries = await _context.Set<FootballCountryEntity>()
+            .Include(c => c.Aliases)
+            .ToArrayAsync();
+        Assert.Single(countries);
+        Assert.Equal(apiLeague.Country.Name, countries[0].Name);
+        Assert.Single(countries[0].Aliases, a =>
+            a.AliasSource == DataSource.FootballApi &&
+            a.Alias == apiLeague.Country.Name.ToLowerInvariant());
+    }
+
+    [Fact]
+    public async Task WhenRefreshingLeaguesTwiceThenReusesExistingCountry()
+    {
+        var apiLeague = FootballApiDataFactory.League();
+        await _handler.SetupGetLeagues(BaseUrl, [apiLeague]);
+
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+        await _handler.SetupGetLeagues(BaseUrl, [apiLeague]);
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+
+        var countries = await _context.Set<FootballCountryEntity>().ToArrayAsync();
+        Assert.Single(countries);
+    }
+
+    [Fact]
+    public async Task WhenRefreshingLeaguesThenAssignsCountryToLeague()
+    {
+        var apiLeague = FootballApiDataFactory.League();
+        await _handler.SetupGetLeagues(BaseUrl, [apiLeague]);
+
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+
+        var league = await _context.Set<FootballLeagueEntity>()
+            .Include(l => l.Country)
+            .SingleAsync();
+        Assert.NotNull(league.Country);
+        Assert.Equal(apiLeague.Country.Name, league.Country.Name);
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasNullCountryCodeAndFlagThenRefreshSucceeds()
+    {
+        var apiLeague = FootballApiDataFactory.League() with
+        {
+            Country = new FootballApiCountry("World", null, null)
+        };
+        await _handler.SetupGetLeagues(BaseUrl, [apiLeague]);
+
+        await _cqrsBus.ExecuteAsync(new RefreshLeaguesCommand());
+
+        var league = await _context.Set<FootballLeagueEntity>()
+            .Include(l => l.Country)
+            .SingleAsync();
+        Assert.NotNull(league.Country);
+        Assert.Null(league.Country.Code);
+        Assert.Null(league.Country.Flag);
     }
 }

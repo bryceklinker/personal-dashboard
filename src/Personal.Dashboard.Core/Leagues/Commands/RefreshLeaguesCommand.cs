@@ -29,10 +29,27 @@ public class RefreshLeaguesCommandHandler(
             .ThenInclude(l => l.Seasons)
             .ToDictionaryAsync(a => a.Alias, cancellationToken);
 
+        var existingCountryAliases = await context.Set<FootballCountryAlias>()
+            .Where(a => a.AliasSource == DataSource.FootballApi)
+            .Include(a => a.Country)
+            .ToDictionaryAsync(a => a.Alias, cancellationToken);
+
         foreach (var apiLeague in response.Response)
         {
-            var country = FootballCountryEntity.CreateFromFootballApi(apiLeague.Country);
-            context.Add(country);
+            var countryKey = apiLeague.Country.Name.ToLowerInvariant();
+            FootballCountryEntity country;
+            if (existingCountryAliases.TryGetValue(countryKey, out var countryAlias))
+            {
+                country = countryAlias.Country;
+                country.UpdateFromFootballApi(apiLeague.Country);
+            }
+            else
+            {
+                country = FootballCountryEntity.CreateFromFootballApi(apiLeague.Country);
+                context.Add(country);
+                existingCountryAliases[countryKey] = country.Aliases
+                    .First(a => a.AliasSource == DataSource.FootballApi);
+            }
 
             var aliasKey = $"{apiLeague.League.Id}";
             if (existingAliases.TryGetValue(aliasKey, out var alias))
