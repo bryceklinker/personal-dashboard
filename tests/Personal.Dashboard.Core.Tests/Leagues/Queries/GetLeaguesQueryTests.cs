@@ -83,4 +83,19 @@ public class GetLeaguesQueryTests
 
         Assert.Single(result.Items[0].Seasons, s => s.Year == 2025 && s.IsCurrent);
     }
+
+    [Fact]
+    public async Task WhenLeagueHasCountryThenReturnsCountryInModel()
+    {
+        var league = PersonalDashboardEntityFactory.FootballLeague();
+        _context.Add(league);
+        await _context.SaveChangesAsync();
+
+        var result = await _bus.QueryAsync(new GetLeaguesQuery());
+
+        var item = result.Items.Single();
+        Assert.NotNull(item.Country);
+        Assert.Equal(league.Country?.Name, item.Country?.Name);
+        Assert.Equal(league.Country?.Code, item.Country?.Code);
+    }
 }
