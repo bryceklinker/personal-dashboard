@@ -38,10 +38,7 @@ public class FootballApiClientTests
         HttpRequestMessage? request = null;
         await _handler.SetupGetJsonResponseAsync(
             $"{BaseUrl}/leagues",
-            FootballApiDataFactory.SuccessResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
-                FootballApiLeaguesParameters.Empty(),
-                [FootballApiDataFactory.League()]
-            ),
+            FootballApiDataFactory.SuccessResponse(new[] { FootballApiDataFactory.League() }),
             new ConfigureResponseOptions
             {
                 Capture = req => request = req
@@ -56,18 +53,16 @@ public class FootballApiClientTests
     [Fact]
     public async Task WhenGettingLeaguesThenReturnsLeaguesFromApi()
     {
-        var response = FootballApiDataFactory.SuccessResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
-            FootballApiLeaguesParameters.Empty(),
-            [
-                FootballApiDataFactory.League() with
+        var response = FootballApiDataFactory.SuccessResponse(new[]
+        {
+            FootballApiDataFactory.League() with
+            {
+                League = FootballApiDataFactory.LeagueInfo() with
                 {
-                    League = FootballApiDataFactory.LeagueInfo() with
-                    {
-                        Name = "Premier League"
-                    }
+                    Name = "Premier League"
                 }
-            ]
-        );
+            }
+        });
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 
         var actual = await _client.GetLeaguesAsync();
@@ -79,24 +74,22 @@ public class FootballApiClientTests
     [Fact]
     public async Task WhenGettingLeaguesReturnsAnErrorThenThrowsError()
     {
-        var response = FootballApiDataFactory.FailureResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
-            FootballApiLeaguesParameters.Empty(),
+        var response = FootballApiDataFactory.FailureResponse<FootballApiLeague[]>(
             [],
-            [FootballApiDataFactory.Error()]
+            new Dictionary<string, object> { { "message", "error" } }
         );
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 
-        await Assert.ThrowsAsync<FootballApiException<FootballApiLeaguesParameters, FootballApiLeague[]>>(() =>
+        await Assert.ThrowsAsync<FootballApiException<FootballApiLeague[]>>(() =>
             _client.GetLeaguesAsync());
     }
 
     [Fact]
     public async Task WhenGettingLeaguesReturnsAnErrorThenLogsError()
     {
-        var response = FootballApiDataFactory.FailureResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
-            FootballApiLeaguesParameters.Empty(),
+        var response = FootballApiDataFactory.FailureResponse<FootballApiLeague[]>(
             [],
-            [FootballApiDataFactory.Error()]
+            new Dictionary<string, object> { { "message", "error" } }
         );
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues", response);
 
@@ -109,10 +102,8 @@ public class FootballApiClientTests
     {
         HttpRequestMessage? request = null;
         await _handler.SetupGetJsonResponseAsync($"{BaseUrl}/leagues",
-            FootballApiDataFactory.SuccessResponse<FootballApiLeaguesParameters, FootballApiLeague[]>(
-                FootballApiLeaguesParameters.Empty(),
-                []
-            ), new ConfigureResponseOptions
+            FootballApiDataFactory.SuccessResponse<FootballApiLeague[]>([]),
+            new ConfigureResponseOptions
             {
                 Capture = req => request = req
             }

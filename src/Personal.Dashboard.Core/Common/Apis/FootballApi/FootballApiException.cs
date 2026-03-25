@@ -2,27 +2,24 @@ using Microsoft.Extensions.Logging;
 
 namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
 
-public class FootballApiException<TParameters, TResponse>(
-    FootballApiResponse<TParameters, TResponse> response
+public class FootballApiException<TResponse>(
+    FootballApiResponse<TResponse> response
 )
     : Exception($"Errors: {string.Join(", ", response.Errors)}")
-    where TParameters : class
 {
-    public FootballApiResponse<TParameters, TResponse> Response { get; } = response;
+    public FootballApiResponse<TResponse> Response { get; } = response;
 
-    public static FootballApiResponse<TParams, TResult> ThrowIfFailed<TParams, TResult>(
-        FootballApiResponse<TParams, TResult>? response)
-        where TParams : FootballApiParameters
+    public static FootballApiResponse<TResult> ThrowIfFailed<TResult>(
+        FootballApiResponse<TResult>? response)
     {
         ArgumentNullException.ThrowIfNull(response);
-        return response.Errors.Length != 0
-            ? throw new FootballApiException<TParams, TResult>(response)
+        return response.Errors.Count != 0
+            ? throw new FootballApiException<TResult>(response)
             : response;
     }
 
-    public static FootballApiResponse<TParams, TResult> ThrowWithLogIfFailed<TParams, TResult>(
-        FootballApiResponse<TParams, TResult>? response, ILogger logger)
-        where TParams : FootballApiParameters
+    public static FootballApiResponse<TResult> ThrowWithLogIfFailed<TResult>(
+        FootballApiResponse<TResult>? response, ILogger logger)
     {
         try
         {

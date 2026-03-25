@@ -1,0 +1,106 @@
+@using Personal.Dashboard.Models
+@using Personal.Dashboard.Web.Host.Common.Apis
+@using MudBlazor
+
+@inject PersonalDashboardApiClient Client
+@inject ISnackbar Snackbar
+
+@if (League is null)
+{
+    <MudText Typo="Typo.body1" Class="ma-4">Select a league to view details</MudText>
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12">
+            <MudGrid>
+                <MudItem xs="10">
+                    <MudText Typo="Typo.h6">@League.Name</MudText>
+                    @if (League.LastRefreshed.HasValue)
+                    {
+                        <MudText Typo="Typo.caption">Last refreshed: @League.LastRefreshed.Value.ToString("g")</MudText>
+                    }
+                </MudItem>
+                <MudItem xs="2">
+                    <MudIconButton Icon="@(League.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                   OnClick="@OnToggleFavoriteAsync"
+                                   role="button"
+                                   aria-label="@(League.IsFavorite ? "unfavorite" : "favorite")" />
+                </MudItem>
+            </MudGrid>
+        </MudItem>
+
+        @if (League.Country is not null)
+        {
+            <MudItem xs="12">
+                <MudGrid>
+                    @if (!string.IsNullOrEmpty(League.Country.Flag))
+                    {
+                        <MudItem>
+                            <img src="@League.Country.Flag" style="height:20px" alt="@League.Country.Name flag" />
+                        </MudItem>
+                    }
+                    <MudItem>
+                        <MudText Typo="Typo.body2">
+                            @League.Country.Name@(League.Country.Code is not null ? $" · {League.Country.Code}" : "")
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        }
+
+        @{
+            var currentSeason = League.Seasons.FirstOrDefault(s => s.IsCurrent);
+        }
+        @if (currentSeason is not null)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-3">
+                    <MudText Typo="Typo.overline">Current Season</MudText>
+                    <MudText Typo="Typo.body1">@currentSeason.Year – @(currentSeason.Year + 1)</MudText>
+                </MudPaper>
+            </MudItem>
+        }
+
+        @if (League.Seasons.Length > 0)
+        {
+            <MudItem xs="12">
+                <MudPaper Class="pa-3">
+                    <MudText Typo="Typo.overline">All Seasons</MudText>
+                    <MudList T="FootballLeagueSeasonModel">
+                        @foreach (var season in League.Seasons.OrderByDescending(s => s.Year))
+                        {
+                            <MudListItem>
+                                <MudText Typo="Typo.body2">
+                                    @season.Year@(season.IsCurrent ? " (Current)" : "")
+                                </MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+}
+
+@code {
+    [Parameter] public FootballLeagueModel? League { get; set; }
+    [Parameter] public EventCallback OnFavoriteChanged { get; set; }
+
+    private async Task OnToggleFavoriteAsync()
+    {
+        if (League is null) return;
+        try
+        {
+            if (League.IsFavorite)
+                await Client.UnfavoriteLeagueAsync(League.Id);
+            else
+                await Client.FavoriteLeagueAsync(League.Id);
+            await OnFavoriteChanged.InvokeAsync();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to update favorite status", Severity.Error);
+        }
+    }
+}

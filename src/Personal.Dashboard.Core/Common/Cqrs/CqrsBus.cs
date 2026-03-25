@@ -14,14 +14,14 @@ public class CqrsBus(
     IEventBus eventBus
 ) : ICqrsBus
 {
-    public async Task ExecuteAsync(ICommand command)
+    public async Task ExecuteAsync(ICommand command, CancellationToken cancellationToken = default)
     {
-        await commandBus.ExecuteAsync(command).ConfigureAwait(false);
+        await commandBus.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command)
+    public async Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
-        return await commandBus.ExecuteAsync(command).ConfigureAwait(false);
+        return await commandBus.ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)

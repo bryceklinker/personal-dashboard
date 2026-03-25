@@ -21,7 +21,7 @@ public class RefreshLeaguesBackgroundService(
             var bus = scope.ServiceProvider.GetRequiredService<ICqrsBus>();
             try
             {
-                await bus.ExecuteAsync(new RefreshLeaguesCommand());
+                await bus.ExecuteAsync(new RefreshLeaguesCommand(), stoppingToken);
             }
             catch (Exception ex)
             {

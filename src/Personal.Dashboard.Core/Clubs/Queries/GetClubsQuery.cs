@@ -1,0 +1,28 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using Personal.Dashboard.Core.Clubs.Entities;
+using Personal.Dashboard.Core.Common.Cqrs.Queries;
+using Personal.Dashboard.Core.Common.Storage;
+using Personal.Dashboard.Models;
+
+namespace Personal.Dashboard.Core.Clubs.Queries;
+
+public record GetClubsQuery(int Offset = 0, int Limit = 10) : PagedQuery<FootballClubModel>(Offset, Limit);
+
+public class GetClubsQueryHandler(
+    PersonalDashboardContext context,
+    IMapper mapper
+) : IQueryHandler<GetClubsQuery, PagedListResultModel<FootballClubModel>>
+{
+    public async Task<PagedListResultModel<FootballClubModel>> Handle(GetClubsQuery request,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Set<FootballClubEntity>()
+            .Include(c => c.Leagues)
+            .OrderByDescending(c => c.IsFavorite)
+            .ThenBy(c => c.Name)
+            .ProjectTo<FootballClubModel>(mapper.ConfigurationProvider);
+        return await query.ToPagedListAsync(request, cancellationToken).ConfigureAwait(false);
+    }
+}

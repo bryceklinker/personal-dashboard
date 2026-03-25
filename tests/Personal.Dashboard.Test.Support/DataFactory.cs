@@ -6,12 +6,35 @@ namespace Personal.Dashboard.Test.Support;
 public static class DataFactory
 {
     private static readonly Faker Faker = new ();
+    public static FootballCountryModel FootballCountryModel()
+    {
+        return new FootballCountryModel(
+            Faker.Address.Country(),
+            Faker.Address.CountryCode(),
+            Faker.Internet.Url()
+        );
+    }
+
     public static FootballLeagueModel FootballLeagueModel()
     {
         return new FootballLeagueModel(
             Faker.Random.Guid(),
             Faker.Company.CompanyName(),
-            Faker.Date.RecentOffset()
+            FootballCountryModel(),
+            Faker.Date.RecentOffset(),
+            Faker.Random.Bool(),
+            [new FootballLeagueSeasonModel(Faker.Random.Int(2020, 2025), true)]
+        );
+    }
+
+    public static FootballClubModel FootballClubModel()
+    {
+        return new FootballClubModel(
+            Faker.Random.Guid(),
+            Faker.Company.CompanyName(),
+            Faker.Date.RecentOffset(),
+            Faker.Random.Bool(),
+            [new FootballClubLeagueModel(Faker.Random.Guid(), Faker.Company.CompanyName())]
         );
     }
 

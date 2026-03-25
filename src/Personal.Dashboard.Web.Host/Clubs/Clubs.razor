@@ -1,0 +1,27 @@
+@page "/clubs"
+@using Personal.Dashboard.Models
+
+<MudGrid Class="d-flex flex-1">
+    <MudItem xs="3" Class="d-flex flex-1">
+        <ClubsList OnClubSelected="@(c => { _selected = c; StateHasChanged(); })" @ref="_list" />
+    </MudItem>
+    <MudItem xs="9">
+        <ClubDetail Club="_selected" OnFavoriteChanged="@OnFavoriteChangedAsync" />
+    </MudItem>
+</MudGrid>
+
+@code {
+    private FootballClubModel? _selected;
+    private ClubsList? _list;
+
+    private async Task OnFavoriteChangedAsync()
+    {
+        if (_list is not null)
+            await _list.LoadClubsAsync();
+        if (_selected is not null && _list is not null)
+        {
+            _selected = _list.Clubs.Items.FirstOrDefault(c => c.Id == _selected.Id);
+        }
+        StateHasChanged();
+    }
+}

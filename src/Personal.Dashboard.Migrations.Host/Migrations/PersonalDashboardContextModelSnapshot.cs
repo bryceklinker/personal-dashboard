@@ -22,6 +22,99 @@ namespace Personal.Dashboard.Migrations.Host.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("FootballClubEntityFootballLeagueEntity", b =>
+                {
+                    b.Property<Guid>("ClubsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("LeaguesId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ClubsId", "LeaguesId");
+
+                    b.HasIndex("LeaguesId");
+
+                    b.ToTable("FootballLeagueClub", (string)null);
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Clubs.Entities.FootballClubAlias", b =>
+                {
+                    b.Property<string>("AliasSource")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Alias")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ClubId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AliasSource", "Alias", "ClubId");
+
+                    b.HasIndex("ClubId");
+
+                    b.ToTable("FootballClubAlias");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Clubs.Entities.FootballClubEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastRefreshed")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FootballClubEntity");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Countries.Entities.FootballCountryAlias", b =>
+                {
+                    b.Property<string>("AliasSource")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Alias")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("CountryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AliasSource", "Alias", "CountryId");
+
+                    b.HasIndex("CountryId");
+
+                    b.ToTable("FootballCountryAlias");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Countries.Entities.FootballCountryEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Code")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Flag")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FootballCountryEntity");
+                });
+
             modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueAlias", b =>
                 {
                     b.Property<string>("AliasSource")
@@ -46,6 +139,12 @@ namespace Personal.Dashboard.Migrations.Host.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("CountryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsFavorite")
+                        .HasColumnType("boolean");
+
                     b.Property<DateTimeOffset?>("LastRefreshed")
                         .HasColumnType("timestamp with time zone");
 
@@ -55,7 +154,62 @@ namespace Personal.Dashboard.Migrations.Host.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CountryId");
+
                     b.ToTable("FootballLeagueEntity");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueSeason", b =>
+                {
+                    b.Property<Guid>("LeagueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("LeagueId", "Year");
+
+                    b.ToTable("FootballLeagueSeason");
+                });
+
+            modelBuilder.Entity("FootballClubEntityFootballLeagueEntity", b =>
+                {
+                    b.HasOne("Personal.Dashboard.Core.Clubs.Entities.FootballClubEntity", null)
+                        .WithMany()
+                        .HasForeignKey("ClubsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueEntity", null)
+                        .WithMany()
+                        .HasForeignKey("LeaguesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Clubs.Entities.FootballClubAlias", b =>
+                {
+                    b.HasOne("Personal.Dashboard.Core.Clubs.Entities.FootballClubEntity", "Club")
+                        .WithMany("Aliases")
+                        .HasForeignKey("ClubId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Club");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Countries.Entities.FootballCountryAlias", b =>
+                {
+                    b.HasOne("Personal.Dashboard.Core.Countries.Entities.FootballCountryEntity", "Country")
+                        .WithMany("Aliases")
+                        .HasForeignKey("CountryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Country");
                 });
 
             modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueAlias", b =>
@@ -71,7 +225,39 @@ namespace Personal.Dashboard.Migrations.Host.Migrations
 
             modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueEntity", b =>
                 {
+                    b.HasOne("Personal.Dashboard.Core.Countries.Entities.FootballCountryEntity", "Country")
+                        .WithMany()
+                        .HasForeignKey("CountryId");
+
+                    b.Navigation("Country");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueSeason", b =>
+                {
+                    b.HasOne("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueEntity", "League")
+                        .WithMany("Seasons")
+                        .HasForeignKey("LeagueId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("League");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Clubs.Entities.FootballClubEntity", b =>
+                {
                     b.Navigation("Aliases");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Countries.Entities.FootballCountryEntity", b =>
+                {
+                    b.Navigation("Aliases");
+                });
+
+            modelBuilder.Entity("Personal.Dashboard.Core.Leagues.Entities.FootballLeagueEntity", b =>
+                {
+                    b.Navigation("Aliases");
+
+                    b.Navigation("Seasons");
                 });
 #pragma warning restore 612, 618
         }

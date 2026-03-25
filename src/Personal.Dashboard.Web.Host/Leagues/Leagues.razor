@@ -1,14 +1,27 @@
 @page "/leagues"
+@using Personal.Dashboard.Models
 
 <MudGrid Class="d-flex flex-1">
     <MudItem xs="3" Class="d-flex flex-1">
-        <LeaguesList />
+        <LeaguesList OnLeagueSelected="@(l => { _selected = l; StateHasChanged(); })" @ref="_list" />
     </MudItem>
     <MudItem xs="9">
-        
+        <LeagueDetail League="_selected" OnFavoriteChanged="@OnFavoriteChangedAsync" />
     </MudItem>
 </MudGrid>
 
 @code {
-    
+    private FootballLeagueModel? _selected;
+    private LeaguesList? _list;
+
+    private async Task OnFavoriteChangedAsync()
+    {
+        if (_list is not null)
+            await _list.LoadLeaguesAsync();
+        if (_selected is not null && _list is not null)
+        {
+            _selected = _list.Leagues.Items.FirstOrDefault(l => l.Id == _selected.Id);
+        }
+        StateHasChanged();
+    }
 }

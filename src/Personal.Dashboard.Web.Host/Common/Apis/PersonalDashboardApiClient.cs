@@ -52,6 +52,45 @@ public class PersonalDashboardApiClient(HttpClient client, IHubConnectionFactory
         ).ConfigureAwait(false);
     }
 
+    public async Task FavoriteLeagueAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await client.PostAsync($"/leagues/{id}/favorite", null, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task UnfavoriteLeagueAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await client.PostAsync($"/leagues/{id}/unfavorite", null, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<PagedListResultModel<FootballClubModel>> GetClubsAsync(
+        PagedListParameters? parameters = null)
+    {
+        var queryParameters = parameters ?? PagedListParameters.Default();
+        return await GetJsonAsync<PagedListResultModel<FootballClubModel>>(
+            $"/clubs?{queryParameters.ToQueryString()}"
+        ).ConfigureAwait(false);
+    }
+
+    public async Task RefreshClubsAsync(CancellationToken ct = default)
+    {
+        var response = await client.PostAsync("/clubs/refresh", null, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task FavoriteClubAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await client.PostAsync($"/clubs/{id}/favorite", null, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task UnfavoriteClubAsync(Guid id, CancellationToken ct = default)
+    {
+        var response = await client.PostAsync($"/clubs/{id}/unfavorite", null, ct).ConfigureAwait(false);
+        response.EnsureSuccessStatusCode();
+    }
+
     private Task InvokeSubscribersAsync(string eventType)
     {
         if (!_subscribers.TryGetValue(eventType, out var handlers))

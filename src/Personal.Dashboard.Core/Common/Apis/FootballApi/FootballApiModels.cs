@@ -1,10 +1,32 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
 
+/// <summary>
+/// The Football API returns "errors": [] on success and "errors": {"field": "msg"} on failure.
+/// This converter handles both forms, treating an empty array as an empty dictionary.
+/// </summary>
+public class FootballApiErrorsConverter : JsonConverter<Dictionary<string, object>>
+{
+    public override Dictionary<string, object> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray) { }
+            return new Dictionary<string, object>();
+        }
+        return JsonSerializer.Deserialize<Dictionary<string, object>>(ref reader, options)
+            ?? new Dictionary<string, object>();
+    }
+
+    public override void Write(Utf8JsonWriter writer, Dictionary<string, object> value, JsonSerializerOptions options)
+        => JsonSerializer.Serialize(writer, value, options);
+}
+
 public record FootballApiPaging(long Current, long Total);
 
-public record FootballApiCountry(string Name, string Code, string Flag);
+public record FootballApiCountry(string Name, string? Code, string? Flag);
 
 public record FootballApiLeagueInfo(long Id, string Name, string Type, string Logo);
 
@@ -69,8 +91,8 @@ public record FootballApiSeasonCoverage(
 
 public record FootballApiSeason(
     long Year,
-    DateOnly Start,
-    DateOnly End,
+    DateOnly? Start,
+    DateOnly? End,
     bool Current,
     FootballApiSeasonCoverage Coverage);
 
@@ -115,22 +137,33 @@ public record FootballApiError(
 );
 
 public record FootballApiResponse<
-    TParameters,
     TResponse
 >(
     string Get,
-    TParameters Parameters,
-    FootballApiError[] Errors,
+    [property: JsonConverter(typeof(FootballApiErrorsConverter))]
+    Dictionary<string, object> Errors,
     long Results,
     FootballApiPaging Paging,
     TResponse Response
-) where TParameters : class;
+);
 
 public record FootballApiLeaguesResponse(
-    FootballApiLeaguesParameters Parameters,
-    FootballApiError[] Errors,
+    Dictionary<string, object> Errors,
     long Results,
     FootballApiPaging Paging,
     FootballApiLeague[] Response
     )
-    : FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>("leagues", Parameters, Errors, Results, Paging, Response);
+    : FootballApiResponse<FootballApiLeague[]>("leagues", Errors, Results, Paging, Response);
+
+public record FootballApiTeamInfo(long Id, string Name);
+
+public record FootballApiTeam(FootballApiTeamInfo Team);
+
+public record FootballApiTeamsParameters(
+    long? League = null,
+    long? Season = null
+) : FootballApiParameters(new Dictionary<string, object?>
+{
+    { "league", League },
+    { "season", Season }
+});

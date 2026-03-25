@@ -6,8 +6,12 @@ namespace Personal.Dashboard.Core.Common.Apis.FootballApi;
 
 public interface IFootballApiClient
 {
-    Task<FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>> GetLeaguesAsync(
+    Task<FootballApiResponse<FootballApiLeague[]>> GetLeaguesAsync(
         FootballApiLeaguesParameters? parameters = null
+    );
+
+    Task<FootballApiResponse<FootballApiTeam[]>> GetTeamsAsync(
+        FootballApiTeamsParameters parameters
     );
 }
 
@@ -30,21 +34,28 @@ public class FootballApiClient(
 
     private FootballApiClientSettings Settings => options?.Value ?? new FootballApiClientSettings();
 
-    public async Task<FootballApiResponse<FootballApiLeaguesParameters, FootballApiLeague[]>> GetLeaguesAsync(
+    public async Task<FootballApiResponse<FootballApiLeague[]>> GetLeaguesAsync(
         FootballApiLeaguesParameters? parameters = null)
     {
         return await GetAsync<FootballApiLeaguesParameters, FootballApiLeague[]>("/leagues", parameters);
     }
 
-    private async Task<FootballApiResponse<TParameters, TResponse>> GetAsync<TParameters, TResponse>(string path, TParameters? parameters) 
+    public async Task<FootballApiResponse<FootballApiTeam[]>> GetTeamsAsync(
+        FootballApiTeamsParameters parameters)
+    {
+        return await GetAsync<FootballApiTeamsParameters, FootballApiTeam[]>("/teams", parameters);
+    }
+
+    private async Task<FootballApiResponse<TResponse>> GetAsync<TParameters, TResponse>(string path, TParameters? parameters) 
         where TParameters : FootballApiParameters
     {
-        var pathAndQuery = parameters is null
+        var queryString = parameters?.AsQueryString();
+        var pathAndQuery = string.IsNullOrEmpty(queryString)
             ? path
-            : $"{path}?{parameters.AsQueryString()}";
+            : $"{path}?{queryString}";
         
         var response = await Client.GetAsync(pathAndQuery);
-        var apiResponse = await response.Content.ReadFromJsonAsync<FootballApiResponse<TParameters, TResponse>>();
-        return FootballApiException<TParameters, TResponse>.ThrowWithLogIfFailed(apiResponse, logger);
+        var apiResponse = await response.Content.ReadFromJsonAsync<FootballApiResponse<TResponse>>();
+        return FootballApiException<TResponse>.ThrowWithLogIfFailed(apiResponse, logger);
     }
 }

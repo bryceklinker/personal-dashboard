@@ -25,7 +25,33 @@ public static class PersonalDashboardLeaguesApiExtensions
     {
         await handler.SetupResponseAsync(
             new HttpRequestMessage(HttpMethod.Post, "http://api/leagues/refresh"),
-            new HttpResponseMessage(System.Net.HttpStatusCode.OK),
+            new HttpResponseMessage(System.Net.HttpStatusCode.NoContent),
+            options
+        );
+    }
+
+    public static async Task SetupFavoriteLeague(
+        this FakeHttpMessageHandler handler,
+        Guid id,
+        ConfigureResponseOptions? options = null)
+    {
+        var statusCode = options?.Status ?? System.Net.HttpStatusCode.NoContent;
+        await handler.SetupResponseAsync(
+            new HttpRequestMessage(HttpMethod.Post, $"http://api/leagues/{id}/favorite"),
+            new HttpResponseMessage(statusCode),
+            options
+        );
+    }
+
+    public static async Task SetupUnfavoriteLeague(
+        this FakeHttpMessageHandler handler,
+        Guid id,
+        ConfigureResponseOptions? options = null)
+    {
+        var statusCode = options?.Status ?? System.Net.HttpStatusCode.NoContent;
+        await handler.SetupResponseAsync(
+            new HttpRequestMessage(HttpMethod.Post, $"http://api/leagues/{id}/unfavorite"),
+            new HttpResponseMessage(statusCode),
             options
         );
     }

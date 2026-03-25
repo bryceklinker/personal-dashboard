@@ -11,7 +11,13 @@
   <Folder Name="/.docs/">
     <File Path="CLAUDE.md" />
     <File Path="docs/superpowers/specs/2026-03-10-leagues-refresh-design.md" />
+    <File Path="docs/superpowers/specs/2026-03-10-league-club-favoriting-design.md" />
+    <File Path="docs/superpowers/specs/2026-03-13-league-season-detail-panels-design.md" />
+    <File Path="docs/superpowers/specs/2026-03-17-league-country-design.md" />
     <File Path="docs/superpowers/plans/2026-03-10-leagues-refresh.md" />
+    <File Path="docs/superpowers/plans/2026-03-10-league-club-favoriting.md" />
+    <File Path="docs/superpowers/plans/2026-03-13-league-seasons-detail-panels.md" />
+    <File Path="docs/superpowers/plans/2026-03-17-league-country.md" />
   </Folder>
   <Folder Name="/.scm/">
     <File Path=".gitignore" />
@@ -28,6 +34,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/Personal.Dashboard.Api.Host.Tests/Personal.Dashboard.Api.Host.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Core.Tests/Personal.Dashboard.Core.Tests.csproj" />
+    <Project Path="tests/Personal.Dashboard.Feature.Tests/Personal.Dashboard.Feature.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Host.Tests/Personal.Dashboard.Host.Tests.csproj" />
     <Project Path="tests/Personal.Dashboard.Test.Support/Personal.Dashboard.Test.Support.csproj" />
     <Project Path="tests/Personal.Dashboard.Web.Host.Tests/Personal.Dashboard.Web.Host.Tests.csproj" />

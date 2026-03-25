@@ -22,16 +22,16 @@ public class CapturingCqrsBus(ICqrsBus inner) : ICqrsBus
     public IEnumerable<T> GetCapturedQueries<T>()
         => _capturedQueries.OfType<T>();
 
-    public async Task ExecuteAsync(ICommand command)
+    public async Task ExecuteAsync(ICommand command, CancellationToken cancellationToken = default)
     {
         _capturedCommands.Add(command);
-        await inner.ExecuteAsync(command);
+        await inner.ExecuteAsync(command, cancellationToken);
     }
 
-    public async Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command)
+    public async Task<TResult> ExecuteAsync<TResult>(ICommand<TResult> command, CancellationToken cancellationToken = default)
     {
         _capturedCommands.Add(command);
-        return await inner.ExecuteAsync(command);
+        return await inner.ExecuteAsync(command, cancellationToken);
     }
 
     public async Task<TResult> QueryAsync<TResult>(IQuery<TResult> query)

@@ -1,53 +1,88 @@
 @using Personal.Dashboard.Models
 @using Personal.Dashboard.Web.Host.Common.Apis
+@using MudBlazor
 
 @inject PersonalDashboardApiClient Client
+@inject ISnackbar Snackbar
 @implements IAsyncDisposable
 
 <MudGrid>
     <MudItem xs="12">
-        <MudStack Row="true" AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h6">Leagues</MudText>
-            <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
-                           OnClick="@OnRefreshClicked"
-                           role="button"
-                           aria-label="refresh" />
-        </MudStack>
+        <MudGrid>
+            <MudItem xs="10">
+                <MudText Typo="Typo.h6">Leagues</MudText>
+            </MudItem>
+            <MudItem xs="2">
+                <MudIconButton Icon="@Icons.Material.Rounded.Refresh"
+                               OnClick="@OnRefreshClicked"
+                               role="button"
+                               aria-label="refresh" />
+            </MudItem>
+        </MudGrid>
     </MudItem>
     <MudItem xs="12">
-        <MudPaper Class="d-flex flex-1">
-            <MudList Class="d-flex flex-1" T="FootballLeagueModel">
+        <MudPaper>
+            <MudList T="FootballLeagueModel">
                 @foreach (var league in Leagues.Items)
                 {
+                    var currentYear = league.Seasons.FirstOrDefault(s => s.IsCurrent)?.Year.ToString() ?? "";
                     <MudListItem>
-                        <MudText Typo="Typo.body1">@league.Name</MudText>
-                        @if (league.LastRefreshed.HasValue)
-                        {
-                            <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
-                        }
+                        <MudGrid>
+                            <MudItem xs="10">
+                                <div role="button" style="cursor:pointer;width:100%" @onclick="@(() => OnLeagueSelected.InvokeAsync(league))">
+                                    <MudText Typo="Typo.body1">@league.Name</MudText>
+                                    @if (!string.IsNullOrEmpty(currentYear))
+                                    {
+                                        <MudText Typo="Typo.caption">@currentYear season</MudText>
+                                    }
+                                    @if (league.LastRefreshed.HasValue)
+                                    {
+                                        <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
+                                    }
+                                    @if (league.Country is not null)
+                                    {
+                                        @if (!string.IsNullOrEmpty(league.Country.Flag))
+                                        {
+                                            <img src="@league.Country.Flag" style="height:20px" alt="@league.Country.Name flag" />
+                                        }
+                                        <MudText Typo="Typo.caption">@league.Country.Name</MudText>
+                                    }
+                                </div>
+                            </MudItem>
+                            <MudItem xs="2">
+                                <MudIconButton Icon="@(league.IsFavorite ? Icons.Material.Filled.Star : Icons.Material.Outlined.StarOutline)"
+                                               OnClick="@(() => OnToggleFavoriteAsync(league))"
+                                               role="button"
+                                               aria-label="@(league.IsFavorite ? "unfavorite" : "favorite")" />
+                            </MudItem>
+                        </MudGrid>
                     </MudListItem>
                 }
             </MudList>
-            <MudStack>
-                <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
-                               OnClick="@GoToPrevious"
-                               role="button"
-                               aria-label="previous" />
-                <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
-                               OnClick="@GoToNext"
-                               Disabled="@(!HasNextPage)"
-                               role="button"
-                               aria-label="next" />
-            </MudStack>
+            <MudGrid Justify="Justify.Center">
+                <MudItem>
+                    <MudIconButton Icon="@Icons.Material.Rounded.NavigateBefore"
+                                   OnClick="@GoToPrevious"
+                                   role="button"
+                                   aria-label="previous" />
+                    <MudIconButton Icon="@Icons.Material.Rounded.NavigateNext"
+                                   OnClick="@GoToNext"
+                                   Disabled="@(!HasNextPage)"
+                                   role="button"
+                                   aria-label="next" />
+                </MudItem>
+            </MudGrid>
         </MudPaper>
     </MudItem>
 </MudGrid>
 
 @code {
-    private PagedListResultModel<FootballLeagueModel> Leagues { get; set; } =
+    [Parameter] public EventCallback<FootballLeagueModel> OnLeagueSelected { get; set; }
+
+    public PagedListResultModel<FootballLeagueModel> Leagues { get; private set; } =
         PagedListResultModel<FootballLeagueModel>.Empty();
 
-    private bool HasNextPage => Leagues.Total > Leagues.Limit;
+    private bool HasNextPage => Leagues.Total > _currentParameters.Offset + Leagues.Limit;
     private IDisposable? _subscription;
     private PagedListParameters _currentParameters = PagedListParameters.Default();
 
@@ -61,7 +96,7 @@
         await LoadLeaguesAsync();
     }
 
-    private async Task LoadLeaguesAsync()
+    public async Task LoadLeaguesAsync()
     {
         Leagues = await Client.GetLeaguesAsync(_currentParameters);
     }
@@ -69,6 +104,23 @@
     private async Task OnRefreshClicked()
     {
         await Client.RefreshLeaguesAsync();
+    }
+
+    private async Task OnToggleFavoriteAsync(FootballLeagueModel league)
+    {
+        try
+        {
+            if (league.IsFavorite)
+                await Client.UnfavoriteLeagueAsync(league.Id);
+            else
+                await Client.FavoriteLeagueAsync(league.Id);
+            await LoadLeaguesAsync();
+            StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add("Failed to update favorite status", Severity.Error);
+        }
     }
 
     private async Task GoToNext()

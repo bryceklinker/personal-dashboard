@@ -7,6 +7,7 @@ using Personal.Dashboard.Core.Common.Cqrs;
 using Personal.Dashboard.Core.Common.Cqrs.Commands;
 using Personal.Dashboard.Core.Common.Cqrs.Events;
 using Personal.Dashboard.Core.Common.Cqrs.Queries;
+using Microsoft.Extensions.Logging;
 using Personal.Dashboard.Core.Common.Logging;
 using Personal.Dashboard.Core.Common.Storage;
 using Personal.Dashboard.Core.Common.Validation;
@@ -52,7 +53,9 @@ public static class PersonalDashboardCoreServiceCollectionExtensions
         });
         services.AddTransient<IQueryBus, QueryBus>();
         services.AddTransient<ICommandBus, CommandBus>();
-        services.AddTransient<IEventBus, EventBus>();
+        services.AddTransient<EventBus>();
+        services.AddTransient<IEventBus>(sp =>
+            new CqrsEventLoggingBehavior(sp.GetRequiredService<EventBus>(), sp.GetRequiredService<ILoggerFactory>()));
         services.AddTransient<CqrsBus>();
         services.AddTransient<ICqrsBus>(sp => sp.GetRequiredService<CqrsBus>());
         return services;

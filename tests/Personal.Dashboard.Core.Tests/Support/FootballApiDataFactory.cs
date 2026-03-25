@@ -64,14 +64,14 @@ public static class FootballApiDataFactory
         );
     }
 
-    public static FootballApiSeason Season()
+    public static FootballApiSeason Season(bool current = true)
     {
         var start = Faker.Date.PastDateOnly();
         return new FootballApiSeason(
             Faker.Date.RecentDateOnly().Year,
             start,
             start.AddMonths(9),
-            true,
+            current,
             SeasonCoverage()
         );
     }
@@ -85,15 +85,20 @@ public static class FootballApiDataFactory
         );
     }
 
-    public static FootballApiResponse<TParameters, TResponse> SuccessResponse<TParameters, TResponse>(
-        TParameters parameters,
-        TResponse response
-    )
-        where TParameters : class
+    public static FootballApiTeamInfo TeamInfo()
     {
-        return new FootballApiResponse<TParameters, TResponse>(
+        return new FootballApiTeamInfo(Faker.Random.Long(1, 99999), Faker.Company.CompanyName());
+    }
+
+    public static FootballApiTeam Team()
+    {
+        return new FootballApiTeam(TeamInfo());
+    }
+
+    public static FootballApiResponse<TResponse> SuccessResponse<TResponse>(TResponse response)
+    {
+        return new FootballApiResponse<TResponse>(
             Faker.Random.AlphaNumeric(8),
-            parameters,
             [],
             response is IEnumerable enumerable ? enumerable.Cast<object>().Count() : 1,
             Paging(),
@@ -101,16 +106,13 @@ public static class FootballApiDataFactory
         );
     }
 
-    public static FootballApiResponse<TParameters, TResponse> FailureResponse<TParameters, TResponse>(
-        TParameters parameters,
+    public static FootballApiResponse<TResponse> FailureResponse<TResponse>(
         TResponse response,
-        FootballApiError[] errors
+        Dictionary<string, object> errors
     )
-        where TParameters : class
     {
-        return new FootballApiResponse<TParameters, TResponse>(
+        return new FootballApiResponse<TResponse>(
             Faker.Random.AlphaNumeric(8),
-            parameters,
             errors,
             response is IEnumerable enumerable ? enumerable.Cast<object>().Count() : 1,
             Paging(),

@@ -9,7 +9,20 @@ public static class FootballApiHttpMessageHandlerExtensions
     {
         await handler.SetupGetJsonResponseAsync(
             $"{baseUrl}/leagues",
-            FootballApiDataFactory.SuccessResponse(FootballApiLeaguesParameters.Empty(), leagues)
+            FootballApiDataFactory.SuccessResponse(leagues)
+        );
+    }
+
+    public static async Task SetupGetTeams(
+        this FakeHttpMessageHandler handler,
+        string baseUrl,
+        long leagueId,
+        int seasonYear,
+        FootballApiTeam[] teams)
+    {
+        await handler.SetupGetJsonResponseAsync(
+            $"{baseUrl}/teams?league={leagueId}&season={seasonYear}",
+            FootballApiDataFactory.SuccessResponse(teams)
         );
     }
 }
