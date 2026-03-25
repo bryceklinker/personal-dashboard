@@ -67,6 +67,55 @@ public class LeagueDetailTests
     }
 
     [Fact]
+    public async Task WhenLeagueHasCountryThenShowsCountryNameAndCode()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var country = new FootballCountryModel("England", "GB", "https://flags.example.com/gb.svg");
+        var league = DataFactory.FootballLeagueModel() with { Country = country };
+
+        var page = context.Render<LeagueDetail>(p => p.Add(x => x.League, league));
+
+        Assert.Contains("England", page.Markup);
+        Assert.Contains("GB", page.Markup);
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasCountryFlagThenShowsFlagImage()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var country = new FootballCountryModel("England", "GB", "https://flags.example.com/gb.svg");
+        var league = DataFactory.FootballLeagueModel() with { Country = country };
+
+        var page = context.Render<LeagueDetail>(p => p.Add(x => x.League, league));
+
+        Assert.Contains("https://flags.example.com/gb.svg", page.Markup);
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasNullCountryThenDoesNotShowCountrySection()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel() with { Country = null };
+
+        var page = context.Render<LeagueDetail>(p => p.Add(x => x.League, league));
+
+        Assert.DoesNotContain("<img", page.Markup);
+    }
+
+    [Fact]
+    public async Task WhenLeagueCountryHasNullCodeThenShowsOnlyName()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var country = new FootballCountryModel("World", null, null);
+        var league = DataFactory.FootballLeagueModel() with { Country = country };
+
+        var page = context.Render<LeagueDetail>(p => p.Add(x => x.League, league));
+
+        Assert.Contains("World", page.Markup);
+        Assert.DoesNotContain("·", page.Markup);
+    }
+
+    [Fact]
     public async Task WhenFavoriteToggledThenInvokesOnFavoriteChanged()
     {
         await using var context = new PersonalDashboardWebContext();

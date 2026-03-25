@@ -30,6 +30,25 @@ else
             </MudGrid>
         </MudItem>
 
+        @if (League.Country is not null)
+        {
+            <MudItem xs="12">
+                <MudGrid>
+                    @if (!string.IsNullOrEmpty(League.Country.Flag))
+                    {
+                        <MudItem>
+                            <img src="@League.Country.Flag" style="height:20px" alt="@League.Country.Name flag" />
+                        </MudItem>
+                    }
+                    <MudItem>
+                        <MudText Typo="Typo.body2">
+                            @League.Country.Name@(League.Country.Code is not null ? $" · {League.Country.Code}" : "")
+                        </MudText>
+                    </MudItem>
+                </MudGrid>
+            </MudItem>
+        }
+
         @{
             var currentSeason = League.Seasons.FirstOrDefault(s => s.IsCurrent);
         }
