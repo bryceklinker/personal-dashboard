@@ -39,6 +39,14 @@
                                     {
                                         <MudText Typo="Typo.caption">@league.LastRefreshed.Value.ToString("g")</MudText>
                                     }
+                                    @if (league.Country is not null)
+                                    {
+                                        @if (!string.IsNullOrEmpty(league.Country.Flag))
+                                        {
+                                            <img src="@league.Country.Flag" style="height:20px" alt="@league.Country.Name flag" />
+                                        }
+                                        <MudText Typo="Typo.caption">@league.Country.Name</MudText>
+                                    }
                                 </div>
                             </MudItem>
                             <MudItem xs="2">

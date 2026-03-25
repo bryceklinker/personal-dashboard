@@ -230,4 +230,44 @@ public class LeaguesListTests
 
         await Eventually.Assert(() => Assert.Contains("2025", page.Markup));
     }
+
+    [Fact]
+    public async Task WhenLeagueHasCountryThenDisplaysCountryName()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var country = new FootballCountryModel("England", "GB", "https://flags.example.com/gb.svg");
+        var league = DataFactory.FootballLeagueModel() with { Country = country };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        var page = context.Render<LeaguesList>();
+
+        await Eventually.Assert(() => Assert.Contains("England", page.Markup));
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasCountryFlagThenDisplaysFlagImage()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var country = new FootballCountryModel("England", "GB", "https://flags.example.com/gb.svg");
+        var league = DataFactory.FootballLeagueModel() with { Country = country };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        var page = context.Render<LeaguesList>();
+
+        await Eventually.Assert(() =>
+            Assert.Contains("https://flags.example.com/gb.svg", page.Markup));
+    }
+
+    [Fact]
+    public async Task WhenLeagueHasNullCountryThenDoesNotRenderFlagImage()
+    {
+        await using var context = new PersonalDashboardWebContext();
+        var league = DataFactory.FootballLeagueModel() with { Country = null };
+        await context.HttpHandler.SetupLeagues(leagues: [league]);
+
+        var page = context.Render<LeaguesList>();
+
+        await Eventually.Assert(() =>
+            Assert.DoesNotContain("<img", page.Markup));
+    }
 }
